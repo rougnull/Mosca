@@ -35,30 +35,36 @@ class ImprovedOlfactoryBrain:
     
     def __init__(
         self,
-        bilateral_distance: float = 2.0,  # mm: distancia entre sensores simulados
-        forward_scale: float = 0.5,
-        turn_scale: float = 1.0,
-        threshold: float = 0.0001,
+        bilateral_distance: float = 1.2,  # mm: distancia entre antenas (biológico: ~1.2mm)
+        forward_scale: float = 1.0,
+        turn_scale: float = 0.8,
+        threshold: float = 0.01,
+        temporal_gradient_gain: float = 10.0,  # Ganancia para dC/dt → forward
     ):
         """
         Inicializar cerebro olfatorio bilateral con temporal gradient.
-        
+
         Parameters
         ----------
-        bilateral_distance : float
+        bilateral_distance : float, default=1.2
             Distancia entre puntos de sensado izquierdo/derecho (mm).
-            Simula distancia entre antenas.
-        forward_scale : float
-            Escala de velocidad forward cuando hay cambio positivo de olor.
-        turn_scale : float
+            Simula distancia entre antenas de Drosophila (~1.2mm real).
+        forward_scale : float, default=1.0
+            Escala de velocidad forward. Con 1.0, forward=1.0 corresponde a
+            ~10 mm/s (velocidad típica de marcha de Drosophila).
+        turn_scale : float, default=0.8
             Escala de giro basado en gradiente lateral bilateral.
-        threshold : float
-            Umbral mínimo de concentración para activar.
+        threshold : float, default=0.01
+            Umbral mínimo de concentración normalizada para activar (0-1).
+        temporal_gradient_gain : float, default=10.0
+            Ganancia aplicada al cambio temporal de concentración.
+            Amplifica dC/dt para generar señal forward adecuada.
         """
         self.bilateral_distance = bilateral_distance
         self.forward_scale = forward_scale
         self.turn_scale = turn_scale
         self.threshold = threshold
+        self.temporal_gradient_gain = temporal_gradient_gain
         
         self._concentration_history = []
         self._max_history = 20
@@ -133,8 +139,8 @@ class ImprovedOlfactoryBrain:
         # 5. Generar acciones motoras:
         
         # FORWARD: solo cuando concentración está AUMENTANDO
-        # Escalar el cambio por 10 para darle sensibilidad
-        forward = self.forward_scale * np.clip(conc_change * 10, 0, 1)
+        # Escalar el cambio por temporal_gradient_gain para darle sensibilidad
+        forward = self.forward_scale * np.clip(conc_change * self.temporal_gradient_gain, 0, 1)
         
         # TURN: basado en comparación bilateral
         # conc_left > conc_right → gradiente_difference positivo → girar izquierda (negativo en código)

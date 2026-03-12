@@ -591,13 +591,17 @@ python tools/render_simulation_video.py \
 
 ### Comportamiento Olfatorio en Drosophila
 
-1. **Álvarez-Salvado et al.** (2018). Elemental sensorimotor computations underlying phonotaxis in _Drosophila_. _Nature Neuroscience_ 21, 901-910.
+1. **Borst & Heisenberg** (1982). Osmotaxis in Drosophila melanogaster. _Journal of Comparative Physiology A_ 147, 479-484.
+   - Estudio fundamental sobre quimiotaxis en Drosophila
 
-2. **Duistermars et al.** (2009). The role of Fruitless in Drosophila courtship behavior. _Nature_ 409, 563-564.
+2. **Gomez-Marin et al.** (2011). Active sampling and decision making in Drosophila chemotaxis. _Nature Communications_ 2, 441.
+   - Toma de decisiones en navegación quimiotáctica
 
-3. **Kocabas et al.** (2012). Functional connectomics of neural circuits in _C. elegans_. _Nature_ 492, 19-25.
+3. **Demir et al.** (2020). Walking Drosophila navigate complex plumes using stochastic decisions biased by the timing of odor encounters. _Current Biology_ 30(2), 164-171.
+   - Navegación en plumas de olor complejas, timing de encuentros
 
 4. **Wilson & Stevenson** (2003). Olfactory plasticity: one scent, many behaviors. _Nature Neuroscience_ 6(5), 438-445.
+   - Plasticidad olfatoria y procesamiento neural
 
 ### Modelado Sensoriomotor
 

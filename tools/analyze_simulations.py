@@ -1,5 +1,11 @@
 """
 Análisis visual de resultados: Gráficas útiles para diagnóstico
+
+⚠️ DEPRECATED: Consider using analyze_experiments.py for batch analysis
+or tools/analysis/generate_improved_report.py for comprehensive reports.
+
+This script provides detailed analysis of individual simulation trajectories.
+Use for single-simulation deep-dive analysis only.
 """
 
 import sys
