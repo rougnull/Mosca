@@ -49,17 +49,25 @@ try:
     from flygym.arena import FlatTerrain
     from flygym.preprogrammed import all_leg_dofs
     import numpy as np
+
+    # Import project components (also require numpy)
+    from olfaction.odor_field import OdorField
+    from controllers.improved_olfactory_brain import ImprovedOlfactoryBrain
+    from controllers.brain_fly import BrainFly
+
     HAS_FLYGYM = True
 except ImportError as e:
-    print(f"Error: FlyGym not available: {e}")
-    print("Install with: pip install flygym")
+    print(f"Error: Required dependencies not available: {e}")
+    print("\nThis script requires:")
+    print("  - FlyGym: pip install flygym")
+    print("  - NumPy: pip install numpy")
+    print("\nInstall all dependencies with:")
+    print("  pip install flygym numpy")
     HAS_FLYGYM = False
     np = None
-
-# Import project components
-from olfaction.odor_field import OdorField
-from controllers.improved_olfactory_brain import ImprovedOlfactoryBrain
-from controllers.brain_fly import BrainFly
+    OdorField = None
+    ImprovedOlfactoryBrain = None
+    BrainFly = None
 
 
 class PhysicsBasedOlfactorySimulation:
@@ -369,8 +377,12 @@ def main():
     args = parser.parse_args()
 
     if not HAS_FLYGYM:
-        print("\n[ERROR] FlyGym is not installed")
-        print("Install with: pip install flygym")
+        print("\n[ERROR] Required dependencies are not installed")
+        print("\nThis script requires:")
+        print("  - FlyGym: pip install flygym")
+        print("  - NumPy: pip install numpy")
+        print("\nInstall all dependencies with:")
+        print("  pip install flygym numpy")
         return False
 
     # Create and run simulation
