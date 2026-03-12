@@ -16,9 +16,65 @@ USO:
 
 import sys
 import pickle
-import numpy as np
 from pathlib import Path
 import json
+
+# Try to import numpy (optional but recommended)
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None
+
+# Helper functions for when numpy is not available
+def safe_min(arr):
+    """Get minimum value, works with lists or numpy arrays."""
+    if HAS_NUMPY and hasattr(arr, '__array__'):
+        return np.min(arr)
+    return min(arr) if isinstance(arr, (list, tuple)) else arr
+
+def safe_max(arr):
+    """Get maximum value, works with lists or numpy arrays."""
+    if HAS_NUMPY and hasattr(arr, '__array__'):
+        return np.max(arr)
+    return max(arr) if isinstance(arr, (list, tuple)) else arr
+
+def safe_mean(arr):
+    """Get mean value, works with lists or numpy arrays."""
+    if HAS_NUMPY and hasattr(arr, '__array__'):
+        return np.mean(arr, axis=0)
+    if isinstance(arr, (list, tuple)):
+        return sum(arr) / len(arr) if len(arr) > 0 else 0
+    return arr
+
+def safe_std(arr):
+    """Get standard deviation, works with lists or numpy arrays."""
+    if HAS_NUMPY and hasattr(arr, '__array__'):
+        return np.std(arr, axis=0)
+    if isinstance(arr, (list, tuple)) and len(arr) > 0:
+        mean = safe_mean(arr)
+        variance = sum((x - mean) ** 2 for x in arr) / len(arr)
+        return variance ** 0.5
+    return 0
+
+def safe_allclose(arr, value, atol=0.01):
+    """Check if all values are close to a value."""
+    if HAS_NUMPY and hasattr(arr, '__array__'):
+        return np.allclose(arr, value, atol=atol)
+    if isinstance(arr, (list, tuple)):
+        return all(abs(x - value) < atol for x in arr)
+    return abs(arr - value) < atol
+
+def safe_degrees(rad):
+    """Convert radians to degrees."""
+    if HAS_NUMPY:
+        return np.degrees(rad)
+    return rad * 180.0 / 3.14159265359
+
+def is_numpy_array(obj):
+    """Check if object is a numpy array."""
+    return HAS_NUMPY and hasattr(obj, '__array__')
 
 def analyze_pkl_file(pkl_path):
     """Analizar archivo .pkl de simulación."""
@@ -26,6 +82,11 @@ def analyze_pkl_file(pkl_path):
     print("ANÁLISIS DE DATOS DE SIMULACIÓN")
     print("="*70)
     print(f"Archivo: {pkl_path}\n")
+
+    if not HAS_NUMPY:
+        print("⚠️  ADVERTENCIA: numpy no está instalado")
+        print("   Algunas funciones de análisis estarán limitadas")
+        print("   Instala numpy con: pip install numpy\n")
 
     # Cargar datos
     with open(pkl_path, 'rb') as f:
@@ -69,12 +130,12 @@ def analyze_pkl_file(pkl_path):
                         # Analizar si se hunde
                         if value.shape[-1] >= 3:  # tiene x, y, z
                             z_values = value[:, 2] if len(value.shape) == 2 else value[2]
-                            if isinstance(z_values, np.ndarray):
+                            if is_numpy_array(z_values) or isinstance(z_values, (list, tuple)):
                                 print(f"    Z inicial: {z_values[0]:.4f}")
                                 print(f"    Z final: {z_values[-1]:.4f}")
-                                print(f"    Z mínimo: {np.min(z_values):.4f}")
-                                print(f"    Z máximo: {np.max(z_values):.4f}")
-                                if np.min(z_values) < 0:
+                                print(f"    Z mínimo: {safe_min(z_values):.4f}")
+                                print(f"    Z máximo: {safe_max(z_values):.4f}")
+                                if safe_min(z_values) < 0:
                                     print(f"    ⚠️  PROBLEMA: La mosca se hundió bajo el suelo (Z < 0)")
 
         if any('orient' in k.lower() or 'heading' in k.lower() or 'quat' in k.lower() for k in data.keys()):
@@ -89,8 +150,8 @@ def analyze_pkl_file(pkl_path):
                             print(f"    Final: {value[-1]}")
                             # Si es ángulo, convertir a grados
                             if value.shape[-1] == 1 or (len(value.shape) == 1):
-                                initial_deg = np.degrees(value[0] if isinstance(value[0], (int, float)) else value[0, 0])
-                                final_deg = np.degrees(value[-1] if isinstance(value[-1], (int, float)) else value[-1, 0])
+                                initial_deg = safe_degrees(value[0] if isinstance(value[0], (int, float)) else value[0, 0])
+                                final_deg = safe_degrees(value[-1] if isinstance(value[-1], (int, float)) else value[-1, 0])
                                 print(f"    Inicial (grados): {initial_deg:.1f}°")
                                 print(f"    Final (grados): {final_deg:.1f}°")
                                 rotation = abs(final_deg - initial_deg)
@@ -109,9 +170,9 @@ def analyze_pkl_file(pkl_path):
                     print(f"  Ejemplo ({key}): shape={value.shape}")
                     if len(value.shape) > 0 and value.shape[0] > 0:
                         print(f"    Valores iniciales: {value[0][:5] if len(value.shape) > 1 else value[:5]}")
-                        print(f"    Rango: [{np.min(value):.4f}, {np.max(value):.4f}]")
+                        print(f"    Rango: [{safe_min(value):.4f}, {safe_max(value):.4f}]")
                         # Verificar si están todos en 0 (patas rectas)
-                        if np.allclose(value, 0, atol=0.01):
+                        if safe_allclose(value, 0, atol=0.01):
                             print(f"    ⚠️  PROBLEMA: Todos los ángulos ~0 (patas rectas/no se mueven)")
 
         # 4. Acciones motoras
@@ -123,10 +184,10 @@ def analyze_pkl_file(pkl_path):
                     if hasattr(value, 'shape'):
                         print(f"  {key}: shape={value.shape}")
                         if len(value.shape) > 0 and value.shape[0] > 0:
-                            print(f"    Media: {np.mean(value, axis=0)}")
-                            print(f"    Std: {np.std(value, axis=0)}")
+                            print(f"    Media: {safe_mean(value)}")
+                            print(f"    Std: {safe_std(value)}")
                             # Verificar si hay movimiento
-                            if np.allclose(value, 0, atol=0.01):
+                            if safe_allclose(value, 0, atol=0.01):
                                 print(f"    ⚠️  PROBLEMA: No hay acciones motoras (todo ~0)")
 
         # 5. Timesteps/frames
