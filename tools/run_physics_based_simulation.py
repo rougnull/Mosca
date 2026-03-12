@@ -149,7 +149,9 @@ class PhysicsBasedOlfactorySimulation:
             actuated_joints=all_leg_dofs,  # All 42 DoF
             control="position",  # Position control (absolute angles)
             spawn_pos=start_pos,
-            motor_mode="direct_joints"  # Use CPG to convert to 42 DoF
+            motor_mode="direct_joints",  # Use CPG to convert to 42 DoF
+            enable_adhesion=True,  # Enable tarsal adhesion for proper ground contact
+            enable_joint_sensors=True  # Enable joint angle feedback
         )
 
         # Create simulation with physics
