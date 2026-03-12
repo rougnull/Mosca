@@ -6,11 +6,23 @@
 
 ## [Unreleased]
 
+### Changes
+
+#### Documentation Cleanup - 2026-03-12
+- **Removed** 6 excessive .md files from root directory
+  - User-facing guides moved/removed (EXECUTIVE_SUMMARY.md, CHECKLIST_VERIFICATION.md, etc.)
+  - Technical content consolidated into data/docs/FIXES.md
+- **Removed** 7 .md files from outputs/tests/ (violates project standards)
+- **Removed** tools/README_TESTS.md (no .md files allowed in tools/)
+- **Removed** invalid "3d failed simulation" directory from outputs/
+- **Follows** data/docs/README.md project standards strictly
+
 ### Planned
 - Neural network-based olfactory brain
 - Multi-agent simulations
 - Turbulent odor plumes
 - Learning/adaptation mechanisms
+- Consolidate redundant test scripts in /tools
 
 ---
 
