@@ -306,14 +306,21 @@ def analyze_pkl_file(pkl_path):
         print("   Instala numpy con: pip install numpy\n", flush=True)
 
     # Cargar datos usando el unpickler seguro
+    print("Cargando archivo pickle...", flush=True)
+    sys.stdout.flush()
     data = load_pickle_safe(pkl_path)
+    print("Archivo cargado exitosamente.", flush=True)
+    sys.stdout.flush()
 
     # Print with explicit flush and error handling for type
     try:
         data_type = type(data)
-        print(f"Tipo de datos: {data_type}", flush=True)
+        type_str = str(data_type)
+        print(f"Tipo de datos: {type_str}", flush=True)
+        sys.stdout.flush()
     except Exception as e:
         print(f"Tipo de datos: [Error al obtener tipo: {e}]", flush=True)
+        sys.stdout.flush()
 
     if isinstance(data, dict):
         print(f"\nClaves en datos: {list(data.keys())[:20]}", flush=True)
