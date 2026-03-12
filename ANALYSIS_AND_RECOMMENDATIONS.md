@@ -1,22 +1,42 @@
-# Análisis Completo del Código y Recomendaciones de Mejora
+# Análisis y Recomendaciones de Mejora - Proyecto Mosca
 
 **Fecha**: 2026-03-12
-**Proyecto**: NeuroMechFly - Navegación Olfatoria en Drosophila
-**Análisis por**: Claude Sonnet 4.5
+**Versión**: 2.0 (Reestructurado)
+**Tipo**: Análisis Técnico + Plan de Acción
 
 ---
 
-## RESUMEN EJECUTIVO
+## 📋 NOTA IMPORTANTE
 
-He realizado un análisis exhaustivo del código y la documentación en `/data`. El proyecto implementa un sistema modular de navegación quimiotáctica para *Drosophila melanogaster* usando FlyGym. La arquitectura core es **sólida**, pero hay **problemas críticos** en el renderizado 3D y algunos aspectos de integración que explican por qué la mosca aparece con el cuerpo rígido y rotado 180 grados.
+Este documento ha sido **reestructurado** para alinearse con los estándares del proyecto.
+
+**Documentos relacionados**:
+- **`data/docs/ARCHITECTURE_ANALYSIS.md`** - Análisis arquitectural completo (NUEVO)
+- **`data/docs/COMPLETE_CODE_REVIEW.md`** - Análisis técnico exhaustivo del código
+- **`data/docs/EXECUTIVE_SUMMARY.md`** - Resumen ejecutivo del proyecto
+- **`data/docs/WORKFLOW_GUIDE.md`** - Guía de uso de scripts
+
+Este documento se enfoca en **recomendaciones de implementación** para resolver problemas del renderizado 3D.
+
+---
+
+## 🎯 RESUMEN EJECUTIVO
+
+### Contexto
+
+El proyecto implementa navegación quimiotáctica para *Drosophila melanogaster* usando FlyGym. Tiene una **arquitectura modular sólida** en `/src`, pero existen **problemas críticos** que afectan el renderizado 3D.
+
+### Problema Principal Reportado
+
+**"La mosca no se mueve, su cuerpo entero gira 180 grados y las patas están totalmente rectas (como un cuerpo muerto)"**
 
 ### Hallazgos Principales:
 
-1. ✅ **Arquitectura modular bien diseñada** - Separación clara: sensorial → cognitivo → motor
+1. ✅ **Arquitectura modular bien diseñada** - Código en `/src` es sólido
 2. ⚠️ **Problema crítico identificado**: Falta extracción y uso del heading (orientación) de la mosca
-3. ⚠️ **Acoplamiento simulación-renderizado**: El rendering está atado a los pasos de física
-4. ⚠️ **Controller incorrecto en uso**: `BrainFly` usa el viejo `OlfactoryBrain` en lugar del mejorado `ImprovedOlfactoryBrain`
-5. ⚠️ **Renderizado 3D**: Los frames se renderizan aplicando ángulos de joints sin control de orientación corporal
+3. ⚠️ **Controller incorrecto en uso**: `BrainFly` usa el viejo `OlfactoryBrain` en lugar del mejorado `ImprovedOlfactoryBrain`
+4. ⚠️ **Acoplamiento simulación-renderizado**: No se puede replay sin re-simular
+5. ⚠️ **Archivos legacy sin integrar**: `neuromechfly_kinematic_replay.py` y `render_enhanced_3d_v2.py` en raíz
 
 ---
 
