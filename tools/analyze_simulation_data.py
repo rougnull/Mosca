@@ -18,6 +18,7 @@ import sys
 import pickle
 from pathlib import Path
 import json
+import io
 
 # Try to import numpy (optional but recommended)
 try:
@@ -26,6 +27,221 @@ try:
 except ImportError:
     HAS_NUMPY = False
     np = None
+
+# If numpy is not available, create minimal mock classes to allow unpickling
+if not HAS_NUMPY:
+    import types
+    import struct
+    import array
+
+    # Create a mock numpy module
+    mock_numpy = types.ModuleType('numpy')
+
+    class MockArray:
+        """Mock numpy array that stores data as nested lists."""
+        def __init__(self, shape=(), dtype=None, buffer=None, offset=0,
+                    strides=None, order=None):
+            if isinstance(shape, (list, tuple)):
+                self.shape = tuple(shape) if shape else ()
+            else:
+                self.shape = ()
+            self.dtype = dtype
+            self._data = []
+            self._raw_bytes = None
+
+        def __array__(self):
+            """Make it look like a numpy array."""
+            return self
+
+        def tolist(self):
+            """Convert to list."""
+            if self._data and isinstance(self._data, list):
+                return self._data
+            # Try to decode from raw bytes if we have them
+            if self._raw_bytes and self.shape and self.dtype:
+                try:
+                    return self._decode_bytes_to_list()
+                except:
+                    pass
+            return []
+
+        def _decode_bytes_to_list(self):
+            """Decode raw bytes to Python list based on dtype and shape."""
+            if not self._raw_bytes or not self.shape:
+                return []
+
+            # Get dtype information
+            dtype_str = str(self.dtype.name) if hasattr(self.dtype, 'name') else str(self.dtype)
+
+            # Map numpy dtypes to struct format codes
+            dtype_map = {
+                'float64': 'd', 'float32': 'f',
+                'int64': 'q', 'int32': 'i', 'int16': 'h', 'int8': 'b',
+                'uint64': 'Q', 'uint32': 'I', 'uint16': 'H', 'uint8': 'B',
+            }
+
+            format_code = None
+            for key in dtype_map:
+                if key in dtype_str:
+                    format_code = dtype_map[key]
+                    break
+
+            if not format_code:
+                return []
+
+            # Calculate total number of elements
+            total_elements = 1
+            for dim in self.shape:
+                total_elements *= dim
+
+            try:
+                # Unpack the bytes
+                values = struct.unpack(f'{total_elements}{format_code}', self._raw_bytes[:total_elements * struct.calcsize(format_code)])
+
+                # Reshape to match the shape
+                if len(self.shape) == 1:
+                    return list(values)
+                elif len(self.shape) == 2:
+                    rows, cols = self.shape
+                    return [list(values[i*cols:(i+1)*cols]) for i in range(rows)]
+                else:
+                    # For higher dimensions, just return flat list
+                    return list(values)
+            except:
+                return []
+
+        def __len__(self):
+            if self.shape:
+                return self.shape[0]
+            return len(self._data) if isinstance(self._data, (list, tuple)) else 0
+
+        def __getitem__(self, index):
+            data = self.tolist()
+            if isinstance(data, list) and isinstance(index, int) and index < len(data):
+                return data[index]
+            elif isinstance(index, slice):
+                return data[index]
+            return data
+
+        def __setstate__(self, state):
+            """Handle unpickling."""
+            # Numpy arrays pickle with a 5-tuple state:
+            # (version, shape, dtype, is_fortran, raw_data)
+            if isinstance(state, tuple) and len(state) == 5:
+                version, shape, dtype, is_fortran, raw_data = state
+                self.shape = tuple(shape) if shape else ()
+                self.dtype = dtype
+                self._raw_bytes = raw_data
+                # Try to decode immediately
+                try:
+                    self._data = self._decode_bytes_to_list()
+                except:
+                    self._data = []
+            elif isinstance(state, dict):
+                self.__dict__.update(state)
+            else:
+                self._data = state if state is not None else []
+
+    class MockDType:
+        """Mock numpy dtype."""
+        def __init__(self, dtype_str, *args, **kwargs):
+            self.name = dtype_str if isinstance(dtype_str, str) else str(dtype_str)
+
+    # Reconstruction function for numpy arrays
+    def _reconstruct(subtype, shape, dtype):
+        """Reconstruct numpy array from pickle - called by pickle."""
+        return MockArray(shape=shape, dtype=dtype)
+
+    # Set up mock numpy module attributes
+    mock_numpy.ndarray = MockArray
+    mock_numpy.dtype = MockDType
+    mock_numpy.int64 = int
+    mock_numpy.int32 = int
+    mock_numpy.int16 = int
+    mock_numpy.int8 = int
+    mock_numpy.uint64 = int
+    mock_numpy.uint32 = int
+    mock_numpy.uint16 = int
+    mock_numpy.uint8 = int
+    mock_numpy.float64 = float
+    mock_numpy.float32 = float
+    mock_numpy.float16 = float
+    mock_numpy.bool_ = bool
+
+    # Create mock submodules
+    mock_core = types.ModuleType('numpy.core')
+    mock_core._multiarray_umath = types.ModuleType('numpy.core._multiarray_umath')
+    mock_core._multiarray_umath.ndarray = MockArray
+    mock_core._multiarray_umath.dtype = MockDType
+    mock_core._multiarray_umath._reconstruct = _reconstruct
+    mock_core.multiarray = types.ModuleType('numpy.core.multiarray')
+    mock_core.multiarray.ndarray = MockArray
+    mock_core.multiarray.dtype = MockDType
+    mock_core.multiarray._reconstruct = _reconstruct
+
+    mock_core_new = types.ModuleType('numpy._core')
+    mock_core_new.multiarray = types.ModuleType('numpy._core.multiarray')
+    mock_core_new.multiarray.ndarray = MockArray
+    mock_core_new.multiarray.dtype = MockDType
+    mock_core_new.multiarray._reconstruct = _reconstruct
+
+    mock_core_new._multiarray_umath = types.ModuleType('numpy._core._multiarray_umath')
+    mock_core_new._multiarray_umath.ndarray = MockArray
+    mock_core_new._multiarray_umath.dtype = MockDType
+    mock_core_new._multiarray_umath._reconstruct = _reconstruct
+
+    # Inject mocks into sys.modules
+    sys.modules['numpy'] = mock_numpy
+    sys.modules['numpy.core'] = mock_core
+    sys.modules['numpy.core._multiarray_umath'] = mock_core._multiarray_umath
+    sys.modules['numpy.core.multiarray'] = mock_core.multiarray
+    sys.modules['numpy._core'] = mock_core_new
+    sys.modules['numpy._core.multiarray'] = mock_core_new.multiarray
+    sys.modules['numpy._core._multiarray_umath'] = mock_core_new._multiarray_umath
+
+def load_pickle_safe(file_path):
+    """Load pickle file safely, handling numpy arrays even without numpy installed."""
+    if HAS_NUMPY:
+        # If numpy is available, use standard pickle
+        with open(file_path, 'rb') as f:
+            return pickle.load(f)
+
+    # Without numpy, try to load but provide helpful error if it fails
+    print("⚠️  Intentando cargar archivo sin numpy...")
+    print("   (Los archivos creados con numpy requieren numpy para cargarse)\n")
+
+    try:
+        with open(file_path, 'rb') as f:
+            unpickler = pickle.Unpickler(f)
+            data = unpickler.load()
+            # Convert mock arrays to lists
+            return _convert_mock_arrays_to_lists(data)
+    except (pickle.UnpicklingError, ModuleNotFoundError, AttributeError, TypeError) as e:
+        # If unpickling fails, provide a helpful error message
+        print(f"❌ ERROR: No se puede cargar el archivo pickle sin numpy")
+        print(f"   Tipo de error: {type(e).__name__}")
+        print(f"\n   Este archivo contiene arrays de numpy que REQUIEREN numpy instalado.")
+        print(f"   \n   SOLUCIÓN: Instala numpy con el siguiente comando:")
+        print(f"   pip install numpy")
+        print(f"\n   Después vuelve a ejecutar este script.\n")
+        sys.exit(1)
+
+def _convert_mock_arrays_to_lists(obj):
+    """Recursively convert mock numpy arrays to lists."""
+    if isinstance(obj, dict):
+        return {key: _convert_mock_arrays_to_lists(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_mock_arrays_to_lists(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(_convert_mock_arrays_to_lists(item) for item in obj)
+    elif not HAS_NUMPY and hasattr(obj, '_data'):
+        # This is likely a mock array
+        data = obj._data
+        if isinstance(data, (list, tuple)):
+            return [_convert_mock_arrays_to_lists(item) for item in data]
+        return data
+    else:
+        return obj
 
 # Helper functions for when numpy is not available
 def safe_min(arr):
@@ -86,11 +302,11 @@ def analyze_pkl_file(pkl_path):
     if not HAS_NUMPY:
         print("⚠️  ADVERTENCIA: numpy no está instalado")
         print("   Algunas funciones de análisis estarán limitadas")
+        print("   Los datos numpy se convertirán a listas de Python")
         print("   Instala numpy con: pip install numpy\n")
 
-    # Cargar datos
-    with open(pkl_path, 'rb') as f:
-        data = pickle.load(f)
+    # Cargar datos usando el unpickler seguro
+    data = load_pickle_safe(pkl_path)
 
     print(f"Tipo de datos: {type(data)}")
 
