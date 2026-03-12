@@ -1,0 +1,161 @@
+"""
+Controlador olfatorio MEJORADO con verdadera quimiotaxis bilateral.
+
+ARREGLO CRÍTICO (2026-03-12):
+- Problema: La mosca se acercaba al olor pero luego se alejaba al estar cerca
+- Causa: Forward se basaba en concentración absoluta, no en cambio temporal
+- Solución: Forward ahora usa d(concentración)/dt (temporal gradient)
+  * Motor forward activa solo cuando concentración AUMENTA
+  * Esto previene que la mosca siga caminando cuando está en la fuente
+  * La mosca ahora hace circulos en la fuente en lugar de overshooting
+
+La mosca ahora:
+1. Sensea olor en la posición actual
+2. Simula sensar en posición "izquierda" y "derecha"
+3. Compara gradiente bilateral para decidir hacia dónde girar
+4. Avanza solo cuando concentración está AUMENTANDO (temporal gradient)
+"""
+
+import numpy as np
+from typing import Optional
+
+
+class ImprovedOlfactoryBrain:
+    """
+    Cerebro olfatorio con detección de gradiente bilateral simulado
+    y control temporal de forward.
+    
+    Implementa verdadera quimiotaxis positiva:
+    - Detecta diferencia bilateral: derecha vs izquierda → Controls turn
+    - Detecta cambio temporal: dC/dt → Controls forward
+    - Si conc está aumentando: caminar hacia adelante
+    - Si conc está disminuyendo: parar o hacer backup
+    - Si conc está estable: solo girar hacia el gradiente
+    """
+    
+    def __init__(
+        self,
+        bilateral_distance: float = 2.0,  # mm: distancia entre sensores simulados
+        forward_scale: float = 0.5,
+        turn_scale: float = 1.0,
+        threshold: float = 0.0001,
+    ):
+        """
+        Inicializar cerebro olfatorio bilateral con temporal gradient.
+        
+        Parameters
+        ----------
+        bilateral_distance : float
+            Distancia entre puntos de sensado izquierdo/derecho (mm).
+            Simula distancia entre antenas.
+        forward_scale : float
+            Escala de velocidad forward cuando hay cambio positivo de olor.
+        turn_scale : float
+            Escala de giro basado en gradiente lateral bilateral.
+        threshold : float
+            Umbral mínimo de concentración para activar.
+        """
+        self.bilateral_distance = bilateral_distance
+        self.forward_scale = forward_scale
+        self.turn_scale = turn_scale
+        self.threshold = threshold
+        
+        self._concentration_history = []
+        self._max_history = 20
+    
+    def step(
+        self,
+        odor_field,
+        current_position: np.ndarray,
+        heading_radians: float
+    ) -> np.ndarray:
+        """
+        Ejecutar paso de decisión con gradiente temporal + bilateral.
+        
+        Parameters
+        ----------
+        odor_field : OdorField
+            Campo de olor del entorno.
+        current_position : np.ndarray
+            Posición actual (x, y, z).
+        heading_radians : float
+            Orientación actual en radianes.
+        
+        Returns
+        -------
+        np.ndarray
+            Vector motor [forward, turn]
+            - forward: basado en CAMBIO temporal de concentración (d C/dt)
+            - turn: basado en DIFERENCIA bilateral del gradient
+        """
+        # 1. Sensear concentración en centro
+        conc_center = float(odor_field.concentration_at(current_position))
+        
+        # 2. Sensear en puntos laterales (bilaterales)
+        #    Perpendicular a la dirección del heading actual
+        left_angle = heading_radians + np.pi / 2  # 90° a la izquierda
+        right_angle = heading_radians - np.pi / 2  # 90° a la derecha
+        
+        left_pos = current_position + self.bilateral_distance * np.array([
+            np.cos(left_angle),
+            np.sin(left_angle),
+            0
+        ])
+        right_pos = current_position + self.bilateral_distance * np.array([
+            np.cos(right_angle),
+            np.sin(right_angle),
+            0
+        ])
+        
+        conc_left = float(odor_field.concentration_at(left_pos))
+        conc_right = float(odor_field.concentration_at(right_pos))
+        
+        # 3. Calcular CAMBIO TEMPORAL de concentración
+        # CRÍTICO FIX: forward ∝ d(conc)/dt, NO conc absoluta
+        # Esto previene que la mosca siga caminando cuando está en la fuente
+        if len(self._concentration_history) > 1:
+            # Use temporal gradient when we have history
+            conc_change = conc_center - self._concentration_history[-1]
+        elif len(self._concentration_history) == 1:
+            # On first step, use absolute concentration (no history yet)
+            conc_change = conc_center * 0.5  # Use fraction of absolute conc to bootstrap
+        else:
+            conc_change = 0.0
+        
+        # Guardar en historial
+        self._concentration_history.append(conc_center)
+        if len(self._concentration_history) > self._max_history:
+            self._concentration_history.pop(0)
+        
+        # 4. Calcular diferencia bilateral de gradiente (espacial)
+        gradient_difference = conc_left - conc_right
+        
+        # 5. Generar acciones motoras:
+        
+        # FORWARD: solo cuando concentración está AUMENTANDO
+        # Escalar el cambio por 10 para darle sensibilidad
+        forward = self.forward_scale * np.clip(conc_change * 10, 0, 1)
+        
+        # TURN: basado en comparación bilateral
+        # conc_left > conc_right → gradiente_difference positivo → girar izquierda (negativo en código)
+        # Pero necesitamos verificar el signo
+        turn = self.turn_scale * np.clip(gradient_difference, -1, 1)
+        
+        return np.array([forward, turn])
+    
+    def get_diagnostics(self) -> dict:
+        """Obtener información de diagnóstico del cerebro."""
+        if not self._concentration_history:
+            return {
+                "mean_concentration": 0.0,
+                "max_concentration": 0.0,
+                "history_length": 0,
+            }
+        
+        conc_arr = np.array(self._concentration_history)
+        return {
+            "mean_concentration": float(np.mean(conc_arr)),
+            "max_concentration": float(np.max(conc_arr)),
+            "min_concentration": float(np.min(conc_arr)),
+            "history_length": len(self._concentration_history),
+        }

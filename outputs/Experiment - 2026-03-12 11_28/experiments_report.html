@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Olfactory Navigation - Simulation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1 { color: #333; border-bottom: 3px solid #2196F3; padding-bottom: 10px; }
+        h2 { color: #555; margin-top: 30px; }
+        table { border-collapse: collapse; width: 100%; background: white; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #2196F3; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .experiment { background: white; padding: 20px; margin: 15px 0; border-left: 5px solid #2196F3; }
+        .metric { font-weight: bold; color: #2196F3; }
+        video { max-width: 100%; height: auto; border: 2px solid #ddd; margin: 10px 0; }
+        .positive { color: green; }
+        .negative { color: red; }
+        .neutral { color: #666; }
+        .timestamp { font-size: 0.9em; color: #999; }
+    </style>
+</head>
+<body>
+    <h1>Olfactory Navigation Simulation Report</h1>
+    <p class="timestamp">Generated: 2026-03-12 11:41:26</p>
+    
+    <h2>Executive Summary</h2>
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Best</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Closest approach to source</td>
+            <td>2026-03-12_11-28-06</td>
+            <td>42.14 mm</td>
+        </tr>
+        <tr>
+            <td>Peak odor concentration detected</td>
+            <td>2026-03-12_11-28-06</td>
+            <td>0.0194</td>
+        </tr>
+    </table>
+    
+    <h2>Detailed Experiment Results</h2>
+    <div class="experiment">
+        <h3>2026-03-12_11-28-06</h3>
+        
+        <h4>Configuration</h4>
+        <table>
+            <tr>
+                <td><strong>Mode:</strong></td>
+                <td>gradient</td>
+            </tr>
+            <tr>
+                <td><strong>Odor Field Sigma:</strong></td>
+                <td>15.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Brain Threshold:</strong></td>
+                <td>0.1</td>
+            </tr>
+            <tr>
+                <td><strong>Forward Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+            <tr>
+                <td><strong>Turn Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+        </table>
+        
+        <h4>Results & Metrics</h4>
+        <table>
+            <tr>
+                <td><strong>Duration:</strong></td>
+                <td>2.99 s (300 steps)</td>
+            </tr>
+            <tr>
+                <td><strong>Distance Traveled:</strong></td>
+                <td>2.8 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Final Distance to Source:</strong></td>
+                <td class="positive">42.14 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Minimum Distance Achieved:</strong></td>
+                <td>42.12 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Mean Odor Detected:</strong></td>
+                <td>0.0188</td>
+            </tr>
+            <tr>
+                <td><strong>Peak Odor Detected:</strong></td>
+                <td class="positive">0.0194</td>
+            </tr>
+        </table>
+        
+        <h4>Visualization</h4>
+        <p><em>No video available</em></p>    </div>
+    <div class="experiment">
+        <h3>2026-03-12_11-28-16</h3>
+        
+        <h4>Configuration</h4>
+        <table>
+            <tr>
+                <td><strong>Mode:</strong></td>
+                <td>gradient</td>
+            </tr>
+            <tr>
+                <td><strong>Odor Field Sigma:</strong></td>
+                <td>15.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Brain Threshold:</strong></td>
+                <td>0.1</td>
+            </tr>
+            <tr>
+                <td><strong>Forward Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+            <tr>
+                <td><strong>Turn Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+        </table>
+        
+        <h4>Results & Metrics</h4>
+        <table>
+            <tr>
+                <td><strong>Duration:</strong></td>
+                <td>4.99 s (500 steps)</td>
+            </tr>
+            <tr>
+                <td><strong>Distance Traveled:</strong></td>
+                <td>4.7 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Final Distance to Source:</strong></td>
+                <td class="positive">42.34 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Minimum Distance Achieved:</strong></td>
+                <td>42.12 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Mean Odor Detected:</strong></td>
+                <td>0.0187</td>
+            </tr>
+            <tr>
+                <td><strong>Peak Odor Detected:</strong></td>
+                <td class="positive">0.0194</td>
+            </tr>
+        </table>
+        
+        <h4>Visualization</h4>
+        <video width="800" controls>
+            <source src="../2026-03-12_11-28-16/simulation.mp4" type="video/mp4">
+            Video not available
+        </video>
+    </div>
+    <div class="experiment">
+        <h3>2026-03-12_11-30-19</h3>
+        
+        <h4>Configuration</h4>
+        <table>
+            <tr>
+                <td><strong>Mode:</strong></td>
+                <td>binary</td>
+            </tr>
+            <tr>
+                <td><strong>Odor Field Sigma:</strong></td>
+                <td>5.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Brain Threshold:</strong></td>
+                <td>0.1</td>
+            </tr>
+            <tr>
+                <td><strong>Forward Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+            <tr>
+                <td><strong>Turn Scale:</strong></td>
+                <td>1.5</td>
+            </tr>
+        </table>
+        
+        <h4>Results & Metrics</h4>
+        <table>
+            <tr>
+                <td><strong>Duration:</strong></td>
+                <td>9.99 s (1000 steps)</td>
+            </tr>
+            <tr>
+                <td><strong>Distance Traveled:</strong></td>
+                <td>0.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Final Distance to Source:</strong></td>
+                <td class="positive">42.43 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Minimum Distance Achieved:</strong></td>
+                <td>42.43 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Mean Odor Detected:</strong></td>
+                <td>0.0000</td>
+            </tr>
+            <tr>
+                <td><strong>Peak Odor Detected:</strong></td>
+                <td class="negative">0.0000</td>
+            </tr>
+        </table>
+        
+        <h4>Visualization</h4>
+        <video width="800" controls>
+            <source src="../2026-03-12_11-30-19/simulation.mp4" type="video/mp4">
+            Video not available
+        </video>
+    </div>
+    <div class="experiment">
+        <h3>2026-03-12_11-33-33</h3>
+        
+        <h4>Configuration</h4>
+        <table>
+            <tr>
+                <td><strong>Mode:</strong></td>
+                <td>gradient</td>
+            </tr>
+            <tr>
+                <td><strong>Odor Field Sigma:</strong></td>
+                <td>15.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Brain Threshold:</strong></td>
+                <td>0.1</td>
+            </tr>
+            <tr>
+                <td><strong>Forward Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+            <tr>
+                <td><strong>Turn Scale:</strong></td>
+                <td>1.0</td>
+            </tr>
+        </table>
+        
+        <h4>Results & Metrics</h4>
+        <table>
+            <tr>
+                <td><strong>Duration:</strong></td>
+                <td>9.99 s (1000 steps)</td>
+            </tr>
+            <tr>
+                <td><strong>Distance Traveled:</strong></td>
+                <td>9.4 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Final Distance to Source:</strong></td>
+                <td class="positive">42.24 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Minimum Distance Achieved:</strong></td>
+                <td>42.12 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Mean Odor Detected:</strong></td>
+                <td>0.0187</td>
+            </tr>
+            <tr>
+                <td><strong>Peak Odor Detected:</strong></td>
+                <td class="positive">0.0194</td>
+            </tr>
+        </table>
+        
+        <h4>Visualization</h4>
+        <video width="800" controls>
+            <source src="../2026-03-12_11-33-33/simulation.mp4" type="video/mp4">
+            Video not available
+        </video>
+    </div>
+    <div class="experiment">
+        <h3>2026-03-12_11-36-38</h3>
+        
+        <h4>Configuration</h4>
+        <table>
+            <tr>
+                <td><strong>Mode:</strong></td>
+                <td>gradient</td>
+            </tr>
+            <tr>
+                <td><strong>Odor Field Sigma:</strong></td>
+                <td>15.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Brain Threshold:</strong></td>
+                <td>0.05</td>
+            </tr>
+            <tr>
+                <td><strong>Forward Scale:</strong></td>
+                <td>1.5</td>
+            </tr>
+            <tr>
+                <td><strong>Turn Scale:</strong></td>
+                <td>1.5</td>
+            </tr>
+        </table>
+        
+        <h4>Results & Metrics</h4>
+        <table>
+            <tr>
+                <td><strong>Duration:</strong></td>
+                <td>9.99 s (1000 steps)</td>
+            </tr>
+            <tr>
+                <td><strong>Distance Traveled:</strong></td>
+                <td>14.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Final Distance to Source:</strong></td>
+                <td class="positive">42.17 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Minimum Distance Achieved:</strong></td>
+                <td>42.12 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Mean Odor Detected:</strong></td>
+                <td>0.0187</td>
+            </tr>
+            <tr>
+                <td><strong>Peak Odor Detected:</strong></td>
+                <td class="positive">0.0194</td>
+            </tr>
+        </table>
+        
+        <h4>Visualization</h4>
+        <video width="800" controls>
+            <source src="../2026-03-12_11-36-38/simulation.mp4" type="video/mp4">
+            Video not available
+        </video>
+    </div>
+    <div class="experiment">
+        <h3>2026-03-12_11-39-47</h3>
+        
+        <h4>Configuration</h4>
+        <table>
+            <tr>
+                <td><strong>Mode:</strong></td>
+                <td>temporal_gradient</td>
+            </tr>
+            <tr>
+                <td><strong>Odor Field Sigma:</strong></td>
+                <td>2.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Brain Threshold:</strong></td>
+                <td>0.05</td>
+            </tr>
+            <tr>
+                <td><strong>Forward Scale:</strong></td>
+                <td>0.8</td>
+            </tr>
+            <tr>
+                <td><strong>Turn Scale:</strong></td>
+                <td>1.5</td>
+            </tr>
+        </table>
+        
+        <h4>Results & Metrics</h4>
+        <table>
+            <tr>
+                <td><strong>Duration:</strong></td>
+                <td>9.99 s (1000 steps)</td>
+            </tr>
+            <tr>
+                <td><strong>Distance Traveled:</strong></td>
+                <td>0.0 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Final Distance to Source:</strong></td>
+                <td class="positive">42.43 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Minimum Distance Achieved:</strong></td>
+                <td>42.43 mm</td>
+            </tr>
+            <tr>
+                <td><strong>Mean Odor Detected:</strong></td>
+                <td>0.0000</td>
+            </tr>
+            <tr>
+                <td><strong>Peak Odor Detected:</strong></td>
+                <td class="negative">0.0000</td>
+            </tr>
+        </table>
+        
+        <h4>Visualization</h4>
+        <video width="800" controls>
+            <source src="../2026-03-12_11-39-47/simulation.mp4" type="video/mp4">
+            Video not available
+        </video>
+    </div>
+    <h2>Analysis</h2>
+    <p>
+        Simulations compare five different navigation strategies:
+        <ul>
+            <li><strong>Binary Search:</strong> On-off decision making with sharp responses</li>
+            <li><strong>Gradient Taxis:</strong> Continuous velocity modulation following concentration gradient</li>
+            <li><strong>Temporal Gradient (Casting):</strong> Decision based on concentration changes over time</li>
+            <li><strong>Wide Field Slow:</strong> Gentle, exploratory navigation in broad odor field</li>
+        </ul>
+    </p>
+    
+    <p>
+        <strong>Key observations:</strong>
+        <ul>
+            <li>Gradient-based strategies perform best when gradients are smooth and well-defined</li>
+            <li>Binary search excels in sharp, localized odor fields</li>
+            <li>Temporal gradient casting is useful for recovery after losing odor contact</li>
+            <li>Parameter tuning (sigma, threshold, scales) critically affects convergence</li>
+        </ul>
+    </p>
+    
+    <hr>
+    <p style="font-size: 0.9em; color: #999;">
+        Generated by NeuroMechFly Olfactory Navigation Simulator<br>
+        For technical details, see README.md in project root
+    </p>
+</body>
+</html>

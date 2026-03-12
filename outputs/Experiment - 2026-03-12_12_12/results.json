@@ -1,0 +1,17 @@
+{
+  "duration": 29.990000000000002,
+  "initial_distance_mm": 56.56690248465066,
+  "final_distance_mm": 18.75998410944856,
+  "min_distance_mm": 7.639147098150924,
+  "max_distance_mm": 56.56690248465066,
+  "distance_reduction_mm": 37.8069183752021,
+  "distance_reduction_percent": 66.8357585700595,
+  "mean_distance_early_mm": 37.16500808050115,
+  "mean_distance_late_mm": 43.85558058275211,
+  "mean_odor_concentration": 0.3782062036294589,
+  "max_odor_concentration": 1.431581609052525,
+  "mean_forward_command": 0.35662355785588995,
+  "mean_turn_command": 0.056345764756711304,
+  "success": true,
+  "progress": false
+}

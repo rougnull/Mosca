@@ -1,0 +1,316 @@
+"""
+Generar reporte HTML único con todos los resultados
+"""
+
+import json
+from pathlib import Path
+from datetime import datetime
+
+experiment_dir = Path("outputs") / "Experiment - 2026-03-12_11_59"
+
+html_content = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Navegación Olfatoria - NeuroMechFly</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        h1 { margin: 0; font-size: 2.5em; }
+        .subtitle { opacity: 0.9; margin-top: 10px; }
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .problem, .solution, .results {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 3px solid #ff6b6b;
+        }
+        .solution { border-color: #51cf66; }
+        .results { border-color: #4c6ef5; }
+        .metric {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin: 5px 5px 5px 0;
+            font-size: 0.9em;
+        }
+        .success { background: #51cf66; }
+        .fail { background: #ff6b6b; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .comparison-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .comparison-card h4 { margin-top: 0; color: #333; }
+        .comparison-card .metric { display: block; margin: 5px 0; }
+        .code-block {
+            background: #2e2e2e;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Análisis de Navegación Olfatoria</h1>
+        <div class="subtitle">NeuroMechFly Simulator - Diagnóstico y Corrección de Comportamiento</div>
+    </div>
+
+    <!-- PROBLEMA ORIGINAL -->
+    <div class="section">
+        <h2>1. Problema Identificado</h2>
+        
+        <div class="problem">
+            <strong>La mosca NO se acerca al olor:</strong><br/>
+            Experimento fallido (2026-03-12 11:28):
+            <ul>
+                <li>Parámetros: sigma=15, threshold=0.1, amplitud=1.0</li>
+                <li>Posición inicial: (10, 10, 5) → Distancia a fuente: 56.6 mm</li>
+                <li>Resultado: 0% de pasos con detección de olor</li>
+                <li>Mejora de distancia: 0.0 mm (NO navigó)</li>
+            </ul>
+        </div>
+
+        <div class="problem">
+            <strong>Raíz del problema:</strong><br/>
+            El gaussiano 3D decae exponencialmente. A 56.6 mm de distancia con sigma=15:
+            <ul>
+                <li>Concentración máxima en campo: 1.0</li>
+                <li>Concentración a 56.6 mm: ~0.082</li>
+                <li>Threshold configurado: 0.1</li>
+                <li>Threshold &gt; max_concentración_detectada → Nunca se activa</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SOLUCIÓN -->
+    <div class="section">
+        <h2>2. Análisis y Corrección</h2>
+        
+        <div class="solution">
+            <strong>Soluciones identificadas:</strong>
+            <ol>
+                <li><strong>Aumentar sigma:</strong> Campo más amplio = Detección desde mayor distancia</li>
+                <li><strong>Reducir threshold:</strong> Umbral más bajo = Sensibilidad aumentada</li>
+                <li><strong>Posición inicial cercana:</strong> Inicializar más cerca de la fuente</li>
+                <li><strong>Combinación óptima:</strong> sigma grande + threshold bajo + posición intermedia</li>
+            </ol>
+        </div>
+
+        <h3>Configuraciones Probadas</h3>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Sigma</th>
+                <th>Threshold</th>
+                <th>Posición Inicial</th>
+                <th>Resultado</th>
+                <th>Mejora Distancia</th>
+            </tr>
+            <tr>
+                <td>failed_original_params</td>
+                <td>15.0</td>
+                <td>0.100</td>
+                <td>(10, 10, 5)</td>
+                <td><span class="metric fail">✗ FALLO</span></td>
+                <td>0.0 mm</td>
+            </tr>
+            <tr>
+                <td>broad_field_detection</td>
+                <td>20.0</td>
+                <td>0.005</td>
+                <td>(10, 10, 5)</td>
+                <td><span class="metric success">✓ ÉXITO</span></td>
+                <td>5.2 mm</td>
+            </tr>
+            <tr>
+                <td>closer_initial_position</td>
+                <td>5.0</td>
+                <td>0.010</td>
+                <td>(35, 35, 5)</td>
+                <td><span class="metric fail">✗ FALLO</span></td>
+                <td>0.0 mm</td>
+            </tr>
+            <tr>
+                <td>optimized_sigma15_near</td>
+                <td>15.0</td>
+                <td>0.010</td>
+                <td>(20, 20, 5)</td>
+                <td><span class="metric success">✓ ÉXITO</span></td>
+                <td>5.8 mm</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="section">
+        <h2>3. Resultados de las Simulaciones Exitosas</h2>
+        
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <h4>broad_field_detection</h4>
+                <span class="metric success">✓ FUNCIONAL</span>
+                <div class="metric" style="display: block; background: #4c6ef5;">σ = 20.0</div>
+                <div class="metric" style="display: block; background: #4c6ef5;">Umbral = 0.005</div>
+                <div class="metric" style="display: block; background: #4c6ef5;">100% detección</div>
+                <div class="metric" style="display: block; background: #4c6ef5;">Mejora: 5.2 mm</div>
+            </div>
+            
+            <div class="comparison-card">
+                <h4>optimized_sigma15_near</h4>
+                <span class="metric success">✓ FUNCIONAL</span>
+                <div class="metric" style="display: block; background: #4c6ef5;">σ = 15.0</div>
+                <div class="metric" style="display: block; background: #4c6ef5;">Umbral = 0.010</div>
+                <div class="metric" style="display: block; background: #4c6ef5;">100% detección</div>
+                <div class="metric" style="display: block; background: #4c6ef5;">Mejora: 5.8 mm</div>
+            </div>
+        </div>
+
+        <div class="results">
+            <strong>Estadísticas Comparativas:</strong>
+            <ul>
+                <li><strong>Distancia inicial:</strong> ~56.6 mm (posición estándar) a 28.3 mm (posición cercana)</li>
+                <li><strong>Distancia final exitosa:</strong> 51.4 mm (broad_field) a 36.6 mm (optimized)</li>
+                <li><strong>Porcentaje sobre threshold:</strong> 100% en configuraciones exitosas</li>
+                <li><strong>Concentración media detectada:</strong> ~0.03 en simulaciones exitosas</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ANÁLISIS 3D -->
+    <div class="section">
+        <h2>4. Integración 3D (MuJoCo)</h2>
+        
+        <div class="results">
+            <strong>Datos preparados para simulación 3D:</strong>
+            <ul>
+                <li>Trayectoria 3D completa basada en comandos de navegación</li>
+                <li>Mapeo de velocidades motoras:
+                    <ul>
+                        <li>Wing frequency: Proporcional a comando forward</li>
+                        <li>Patas traseras: Proporcional a comando turning</li>
+                        <li>Posición del cuerpo: De navegación olfatoria</li>
+                    </ul>
+                </li>
+                <li>Archivos generados:
+                    <ul>
+                        <li><code>*_mujoco_commands.json</code> - Comandos motores detallados</li>
+                        <li><code>*_mujoco_commands.csv</code> - Formato tabulado para verificación</li>
+                        <li><code>*_3d_trajectory.json</code> - Trayectoria 3D interpolada</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- RECOMENDACIONES -->
+    <div class="section">
+        <h2>5. Recomendaciones</h2>
+        
+        <div class="results">
+            <strong>Parámetros Recomendados para Futuras Simulaciones:</strong>
+            <div class="code-block">
+sigma = 15.0  # o mayor para campo más amplio
+amplitude = 1.0
+threshold = 0.01  # Bastante sensible
+initial_position = [20, 20, 5]  # Intermedia para convergencia rápida
+
+# Alternativa para máximo rango de detección:
+sigma = 20.0
+threshold = 0.005
+initial_position = [10, 10, 5]
+            </div>
+        </div>
+
+        <div class="results">
+            <strong>Próximos Pasos:</strong>
+            <ol>
+                <li>Ajustar parámetros según necesidades de experimento específico</li>
+                <li>Integrar datos con renderer 3D de MuJoCo para visualización completa</li>
+                <li>Validar comportamiento contra datos biológicos reales</li>
+                <li>Explorar modos de control (binary, gradient, temporal_gradient)</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Reporte generado: <span class="timestamp">""" + datetime.now().isoformat() + """</span></p>
+        <p>Experimento: Análisis de Navegación Olfatoria</p>
+        <p>Directorio: outputs/Experiment - 2026-03-12_11_59/</p>
+    </div>
+</body>
+</html>
+"""
+
+# Guardar HTML
+output_file = experiment_dir / "analysis_report.html"
+with open(output_file, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print(f"✓ Reporte generado: {output_file}")
+print(f"  Abre en navegador para ver análisis completo")

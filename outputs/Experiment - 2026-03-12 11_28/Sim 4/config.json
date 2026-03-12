@@ -1,0 +1,26 @@
+{
+  "mode": "gradient",
+  "sigma": 15.0,
+  "threshold": 0.1,
+  "forward_scale": 1.0,
+  "turn_scale": 1.0,
+  "duration": 10.0,
+  "arena_size": [
+    100.0,
+    100.0,
+    10
+  ],
+  "source_pos": [
+    50.0,
+    50.0,
+    5.0
+  ],
+  "timestamp": "2026-03-12T11:33:33.698189",
+  "metrics": {
+    "n_steps": 1000,
+    "duration": 9.99,
+    "mean_odor": 0.018747640995716453,
+    "max_odor": 0.019411993474768702,
+    "final_distance": 42.24234916765783
+  }
+}

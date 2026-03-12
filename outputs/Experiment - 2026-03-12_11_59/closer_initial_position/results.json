@@ -1,0 +1,14 @@
+{
+  "n_steps": 2000,
+  "mean_odor": 0.00012346758255311254,
+  "max_odor": 0.0001235499600364608,
+  "min_odor": 0.00012338524357671687,
+  "std_odor": 5.823518819181936e-08,
+  "steps_above_threshold": 0,
+  "percent_above_threshold": 0.0,
+  "initial_distance": 21.21319457323224,
+  "final_distance": 21.21320566786806,
+  "min_distance": 21.21186572297468,
+  "total_improvement": -1.10946358198305e-05,
+  "success": false
+}

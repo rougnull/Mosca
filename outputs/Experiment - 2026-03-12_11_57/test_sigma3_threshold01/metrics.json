@@ -1,0 +1,34 @@
+{
+  "config": {
+    "mode": "binary",
+    "threshold": 0.01,
+    "sigma": 3.0,
+    "duration": 10,
+    "arena_size": [
+      100,
+      100,
+      10
+    ],
+    "source": [
+      50,
+      50,
+      5
+    ],
+    "timestamp": "2026-03-12T11:57:44.329970"
+  },
+  "statistics": {
+    "n_steps": 1000,
+    "mean_odor": 6.195724613766903e-78,
+    "max_odor": 6.195724613766903e-78,
+    "min_odor": 6.195724613766903e-78,
+    "std_odor": 0.0,
+    "n_steps_above_threshold": 0,
+    "percent_above_threshold": 0.0,
+    "initial_distance": 56.568542494923804,
+    "final_distance": 56.568542494923804,
+    "min_distance": 56.568542494923804,
+    "distance_change": 0.0,
+    "mean_forward_command": 0.0,
+    "mean_turn_command": 1.0
+  }
+}

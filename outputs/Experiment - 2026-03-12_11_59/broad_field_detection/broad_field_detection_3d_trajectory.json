@@ -1,0 +1,10 @@
+{
+  "metadata": {
+    "simulation_type": "3D with MuJoCo/FlyGym",
+    "timestamp": "2026-03-12T12:01:21.781321",
+    "total_steps": 300,
+    "errors": 300
+  },
+  "trajectory": [],
+  "odor_readings": []
+}

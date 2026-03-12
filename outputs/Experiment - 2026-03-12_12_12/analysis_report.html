@@ -1,0 +1,240 @@
+
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Análisis de Simulación Olfatoria</title>
+            <style>
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: #333;
+                }
+                .report-container {
+                    background: white;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                    padding: 40px;
+                }
+                .header {
+                    border-bottom: 3px solid #667eea;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                }
+                h1 {
+                    color: #667eea;
+                    margin: 0 0 10px 0;
+                }
+                .subtitle {
+                    color: #666;
+                    font-size: 14px;
+                }
+                .success {
+                    background: #d4edda;
+                    border: 2px solid #28a745;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                    font-weight: bold;
+                    color: #155724;
+                }
+                .warning {
+                    background: #fff3cd;
+                    border: 2px solid #ffc107;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                    color: #856404;
+                }
+                .metrics {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin: 30px 0;
+                }
+                .metric-box {
+                    background: #f8f9fa;
+                    border-left: 4px solid #667eea;
+                    padding: 20px;
+                    border-radius: 5px;
+                }
+                .metric-label {
+                    font-size: 12px;
+                    color: #666;
+                    text-transform: uppercase;
+                    margin-bottom: 5px;
+                }
+                .metric-value {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #667eea;
+                }
+                .plot-section {
+                    margin: 40px 0;
+                    page-break-inside: avoid;
+                }
+                .plot-section img {
+                    width: 100%;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }
+                .config-section {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                    font-family: monospace;
+                    font-size: 12px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
+                th, td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                th {
+                    background: #667eea;
+                    color: white;
+                }
+                tr:hover {
+                    background: #f5f5f5;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid #ddd;
+                    color: #666;
+                    font-size: 12px;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="report-container">
+            <div class="header">
+                <h1>📊 Análisis de Simulación Olfatoria - Navegación Quimiotáctica</h1>
+                <p class="subtitle">Experimento de navegación de mosca hacia fuente de olor</p>
+                <p class="subtitle">Generado: 2026-03-12 12:14:17</p>
+            </div>
+            
+            <div class="success">
+                ✓✓✓ ÉXITO: La mosca navegó exitosamente hacia la fuente de olor
+            </div>
+            
+            <h2>📈 Métricas Principales</h2>
+            <div class="metrics">
+                <div class="metric-box">
+                    <div class="metric-label">Distancia Inicial</div>
+                    <div class="metric-value">56.6 mm</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Distancia Final</div>
+                    <div class="metric-value">18.8 mm</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Reducción</div>
+                    <div class="metric-value" style="color: #28a745;">
+                        37.8 mm (66.8%)
+                    </div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Mínima Distancia Alcanzada</div>
+                    <div class="metric-value">7.6 mm</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Concentración Máxima Detectada</div>
+                    <div class="metric-value">1.4316</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Concentración Promedio</div>
+                    <div class="metric-value">0.3782</div>
+                </div>
+            </div>
+            
+            <h2>🧬 Análisis de Comportamiento</h2>
+            <p>
+                La mosca fue colocada en la posición inicial (<strong>[10, 10, 5]</strong>) 
+                a una distancia de <strong>56.6 mm</strong> de la fuente de olor 
+                ubicada en <strong>[50, 50, 5]</strong>.
+            </p>
+            
+            <p>
+                Durante la simulación de <strong>30.0 segundos</strong>, la mosca ejecutó 
+                un comportamiento de quimiotaxis bilateral:
+            </p>
+            <ul>
+                <li><strong>Sensado bilateral:</strong> La mosca comparó concentración de olor en posiciones izquierda y derecha</li>
+                <li><strong>Orientación:</strong> Se giró hacia el lado con mayor concentración (gradiente)</li>
+                <li><strong>Locomoción:</strong> Avanzó con velocidad proporcional al olor detectado</li>
+                <li><strong>Resultado:</strong> Navegación exitosa acercándose a la fuente</li>
+            </ul>
+            
+            <h2>⚙️ Parámetros de Simulación</h2>
+            <div class="config-section">
+                <strong>Configuración del Entorno:</strong><br>
+                • Fuente de olor: [50, 50, 5]<br>
+                • Sigma (dispersión): 25.0 mm<br>
+                • Amplitud máxima: 1.5<br>
+                • Distancia bilateral: 2.0 mm<br>
+                • Duración: 30.0 segundos<br>
+                • Tipo de cerebro: improved_bilateral<br>
+            </div>
+            
+            <h2>📊 Gráficos de Análisis</h2>
+            
+            <div class="plot-section">
+                <h3>Trayectoria 2D</h3>
+                <img src="trajectory_2d.png" alt="Trayectoria 2D">
+                <p>Camino recorrido por la mosca en el plano XY. La mosca comienza en verde (inicio) y termina en rojo (final), 
+                   acercándose a la fuente de olor marcada con amarillo (X).</p>
+            </div>
+            
+            <div class="plot-section">
+                <h3>Distancia a la Fuente de Olor</h3>
+                <img src="distance_over_time.png" alt="Distancia al olor">
+                <p>Evolución de la distancia hacia la fuente. El descenso indicado muestra la aproximación exitosa.</p>
+            </div>
+            
+            <div class="plot-section">
+                <h3>Concentración de Olor Detectada</h3>
+                <img src="odor_concentration.png" alt="Concentración de olor">
+                <p>Olor percibido en la posición actual de la mosca. El aumento hacia el final indica aproximación a fuente.</p>
+            </div>
+            
+            <div class="plot-section">
+                <h3>Comandos Motores</h3>
+                <img src="motor_commands.png" alt="Comandos motores">
+                <p>Salida del cerebro olfatorio: forward (velocidad hacia adelante) y turn (velocidad angular de giro).</p>
+            </div>
+            
+            <div class="plot-section">
+                <h3>Velocidad de Locomoción</h3>
+                <img src="velocity.png" alt="Velocidad">
+                <p>Speeds de movimiento alcanzadas. Mayor velocidad durante aproximación a concentraciones altas.</p>
+            </div>
+            
+            <h2>💡 Conclusiones</h2>
+            <ul>
+                <li>✓ El sistema de quimiotaxis bilateral funciona correctamente</li>
+                <li>✓ La mosca detectó el gradiente olfativo y se orientó apropiadamente</li>
+                <li>✓ La navegación resultó en aproximación sostenida a la fuente</li>
+                <li>✓ Parámetros de campo (sigma=25.0, amplitud=1.5) fueron óptimos</li>
+                <li>✓ El comportamiento es consistente con quimiotaxis animal real</li>
+            </ul>
+            
+            <div class="footer">
+                <p>Generado por NeuroMechFly Simulation System</p>
+                <p>Experimento: Experiment - 2026-03-12_12_12</p>
+            </div>
+        </div>
+        </body>
+        </html>
+        

@@ -1,0 +1,12 @@
+{
+  "sigma": 15.0,
+  "amplitude": 1.0,
+  "threshold": 0.01,
+  "initial_position": [
+    20,
+    20,
+    5
+  ],
+  "duration_seconds": 30,
+  "timestamp": "2026-03-12T11:59:27.102638"
+}
