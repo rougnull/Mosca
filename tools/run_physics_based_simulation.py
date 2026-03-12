@@ -425,6 +425,41 @@ class PhysicsBasedOlfactorySimulation:
 
         return output_dir
 
+    def analyze_data(self, output_dir: Path) -> None:
+        """
+        Run analysis on saved simulation data.
+
+        Parameters
+        ----------
+        output_dir : Path
+            Directory containing simulation_data.pkl
+        """
+        data_file = output_dir / "simulation_data.pkl"
+        analysis_file = output_dir / "analysis.txt"
+
+        if not data_file.exists():
+            print(f"  [!] Data file not found: {data_file}")
+            return
+
+        print(f"\n[2/2] Running data analysis...")
+
+        # Import analyze function
+        try:
+            # Add tools directory to path if needed
+            tools_dir = PROJECT_ROOT / "tools"
+            if str(tools_dir) not in sys.path:
+                sys.path.insert(0, str(tools_dir))
+
+            from analyze_simulation_data import analyze_pkl_file
+
+            # Run analysis and save to file
+            analyze_pkl_file(str(data_file), str(analysis_file))
+
+        except Exception as e:
+            print(f"  [!] Analysis failed: {e}")
+            import traceback
+            traceback.print_exc()
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -470,6 +505,9 @@ def main():
 
     # Save results
     output_dir = sim.save_data()
+
+    # Run analysis automatically
+    sim.analyze_data(output_dir)
 
     print("\n" + "="*70)
     print("[OK] SIMULATION COMPLETED SUCCESSFULLY")

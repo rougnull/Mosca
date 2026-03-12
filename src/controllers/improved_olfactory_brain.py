@@ -123,10 +123,13 @@ class ImprovedOlfactoryBrain:
             # Use temporal gradient when we have history
             conc_change = conc_center - self._concentration_history[-1]
         elif len(self._concentration_history) == 1:
-            # On first step, use absolute concentration (no history yet)
+            # On second step, use absolute concentration as bootstrap
+            # (Assume movement started from 0 concentration to current)
             conc_change = conc_center * 0.5  # Use fraction of absolute conc to bootstrap
         else:
-            conc_change = 0.0
+            # FIRST STEP: Use small constant to initiate movement (cold start)
+            # Without this, the fly never moves and we get stuck at 0
+            conc_change = 0.1  # Small positive value to bootstrap forward movement
         
         # Guardar en historial
         self._concentration_history.append(conc_center)

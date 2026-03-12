@@ -293,8 +293,29 @@ def is_numpy_array(obj):
     """Check if object is a numpy array."""
     return HAS_NUMPY and hasattr(obj, '__array__')
 
-def analyze_pkl_file(pkl_path):
-    """Analizar archivo .pkl de simulación."""
+def analyze_pkl_file(pkl_path, output_file=None):
+    """
+    Analizar archivo .pkl de simulación.
+
+    Parameters
+    ----------
+    pkl_path : str or Path
+        Ruta al archivo pickle de simulación
+    output_file : str or Path, optional
+        Si se proporciona, guarda el análisis en este archivo además de imprimirlo
+
+    Returns
+    -------
+    dict
+        Diccionario con estadísticas del análisis
+    """
+    # Si hay archivo de salida, redirigir stdout
+    if output_file:
+        import io
+        output_buffer = io.StringIO()
+        original_stdout = sys.stdout
+        sys.stdout = output_buffer
+
     print("="*70, flush=True)
     print("ANÁLISIS DE DATOS DE SIMULACIÓN", flush=True)
     print("="*70, flush=True)
@@ -470,6 +491,25 @@ def analyze_pkl_file(pkl_path):
     print("\n" + "="*70, flush=True)
     print("FIN DEL ANÁLISIS", flush=True)
     print("="*70, flush=True)
+
+    # Si se capturó en buffer, escribir a archivo y restaurar stdout
+    if output_file:
+        sys.stdout = original_stdout
+        analysis_text = output_buffer.getvalue()
+
+        # Escribir a archivo
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(analysis_text)
+
+        # También imprimir en consola
+        print(analysis_text)
+        print(f"\n[INFO] Análisis guardado en: {output_file}")
+
+    # Retornar estadísticas básicas
+    stats = {"success": True, "data_type": type(data).__name__}
+    if isinstance(data, dict):
+        stats["keys"] = list(data.keys())
+    return stats
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
