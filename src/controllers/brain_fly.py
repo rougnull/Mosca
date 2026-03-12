@@ -64,6 +64,7 @@ class BrainFly(Fly):
         # Buffer de observaciones para acceso rápido
         self._last_obs = None
         self._odor_concentration = 0.0
+        self._last_motor_signal = np.zeros(2)  # Store last [forward, turn] command
     
     def get_sensory_input(self, obs: Dict[str, Any]) -> float:
         """
@@ -254,6 +255,9 @@ class BrainFly(Fly):
 
         # 3. Convertir señal cerebral a acciones motoras
         action = self._motor_signal_to_action(motor_signal)
+
+        # Store motor signal for diagnostics/logging
+        self._last_motor_signal = motor_signal.copy()
 
         return action
     

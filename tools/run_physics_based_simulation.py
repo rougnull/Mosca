@@ -206,6 +206,17 @@ class PhysicsBasedOlfactorySimulation:
         print(f"Start pos: {start_pos}")
         print(f"Render FPS: {render_fps}")
         print(f"Total steps: {int(sim_duration / timestep)}")
+        print(f"Brain type: {self.brain.__class__.__name__}")
+        print(f"Motor mode: {self.fly.motor_mode}")
+
+        # Test initial brain output
+        if "fly" in self.obs:
+            test_pos = self.obs["fly"][0]
+            test_conc = float(self.odor_field.concentration_at(test_pos))
+            print(f"\nInitial test:")
+            print(f"  Position: {test_pos}")
+            print(f"  Odor concentration: {test_conc:.4f}")
+        print("="*70)
 
     def step(self) -> bool:
         """
@@ -235,9 +246,20 @@ class PhysicsBasedOlfactorySimulation:
         # Get odor concentration at current position
         conc = float(self.odor_field.concentration_at(position))
 
-        # Get brain action
-        brain_action = [action.get("joints", np.zeros(2))[0] if len(action.get("joints", [])) < 3 else 0.0,
-                        action.get("joints", np.zeros(2))[1] if len(action.get("joints", [])) < 3 else 0.0]
+        # Get brain action (the [forward, turn] motor signal before conversion to joints)
+        brain_action = self.fly._last_motor_signal.copy()
+
+        # Debug logging every 5000 steps
+        step_count = len(self.trajectory_data["times"])
+        if step_count % 5000 == 0 and step_count > 0:
+            print(f"\n[Step {step_count}] Debug:")
+            print(f"  Position: {position}")
+            print(f"  Heading: {heading:.3f} rad ({np.degrees(heading):.1f}°)")
+            print(f"  Odor conc: {conc:.4f}")
+            print(f"  Brain action: forward={brain_action[0]:.4f}, turn={brain_action[1]:.4f}")
+            if hasattr(self.brain, '_concentration_history') and len(self.brain._concentration_history) > 1:
+                recent_conc = self.brain._concentration_history[-2:]
+                print(f"  Conc change: {recent_conc[-1] - recent_conc[-2]:.6f}")
 
         # Store data
         current_time = len(self.trajectory_data["times"]) * self.timestep
