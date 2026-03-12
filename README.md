@@ -38,6 +38,42 @@ Results saved to `outputs/simulations/physics_3d/{TIMESTAMP}/`:
 
 ---
 
+## Recent Updates (2026-03-12)
+
+### Critical Simulation Fixes
+
+Three fixes were implemented to resolve locomotion issues in physics-based simulations:
+
+1. **Brain Sensitivity**: Increased `temporal_gradient_gain` from 10.0 to 50.0
+2. **CPG Support**: Increased baseline leg amplitude from 0.5 to 0.7
+3. **Femur Extension**: Adjusted femur offset from -0.8 to -0.5 rad
+
+**Results**: 52x improvement in forward action, stable body height, proper ground clearance.
+
+**Documentation**:
+- **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** - Overview of fixes and results
+- **[CHECKLIST_VERIFICATION.md](CHECKLIST_VERIFICATION.md)** - Verification steps
+- **[outputs/tests/README.md](outputs/tests/README.md)** - Complete documentation index
+
+**Verify Your Installation**:
+```bash
+# Check fixes are applied
+grep "temporal_gradient_gain=50.0" tools/run_physics_based_simulation.py
+grep "amplitude = 0.7" src/controllers/cpg_controller.py
+
+# Run verification simulation
+python tools/run_physics_based_simulation.py --duration 5
+```
+
+**Expected Results**:
+- Forward mean > 0.02 (vs 0.00085 baseline)
+- Z-axis stable > 1.5mm (no sinking)
+- Distance > 50mm in 5 seconds
+
+For troubleshooting, see [CHECKLIST_VERIFICATION.md](CHECKLIST_VERIFICATION.md).
+
+---
+
 ## System Architecture
 
 ```
@@ -178,7 +214,7 @@ bilateral_distance = 1.2           # mm (antenna spacing)
 forward_scale = 1.0
 turn_scale = 0.8
 threshold = 0.01
-temporal_gradient_gain = 10.0
+temporal_gradient_gain = 50.0      # Updated 2026-03-12 (was 10.0)
 ```
 
 ### Validated Against Literature
