@@ -136,18 +136,14 @@ class PhysicsBasedOlfactorySimulation:
             temporal_gradient_gain=10.0
         )
 
-        # Create FlyGym fly with physics
-        self.fly = Fly(
+        # Create BrainFly (inherits from Fly, integrates brain + odor sensing)
+        self.fly = BrainFly(
+            brain=self.brain,
+            odor_field=self.odor_field,
             init_pose="stretch",
             actuated_joints=all_leg_dofs,  # All 42 DoF
             control="position",  # Position control (absolute angles)
             spawn_pos=start_pos,
-        )
-
-        # Create BrainFly wrapper
-        self.brain_fly = BrainFly(
-            brain=self.brain,
-            odor_field=self.odor_field,
             motor_mode="direct_joints"  # Use CPG to convert to 42 DoF
         )
 
@@ -197,8 +193,8 @@ class PhysicsBasedOlfactorySimulation:
         bool
             True if simulation should continue
         """
-        # Get action from brain based on current observations
-        action = self.brain_fly.step(self.obs)
+        # Get action from BrainFly based on current observations
+        action = self.fly.step(self.obs)
 
         # Execute physics step
         self.obs, reward, terminated, truncated, self.info = self.sim.step(action)
