@@ -240,7 +240,13 @@ Mosca/
 
 4. **Implement complete organizational improvements** (6f84d8c)
    - Reorganización completa implementada
-   - Este commit
+
+5. **Clean README and finalize organization** (próximo commit)
+   - Movido debug/ a data/debug/ (elimina redundancia con outputs/debug/)
+   - Removidas secciones tutorial/workflow del README.md
+   - README.md ahora contiene SOLO información técnica/biológica
+   - Actualizada estructura de carpetas en README
+   - .gitignore actualizado con nueva ubicación de debug
 
 ---
 
@@ -252,9 +258,11 @@ Todas las mejoras organizacionales solicitadas han sido implementadas exitosamen
 - ✅ Notebooks movidos a `data/notebooks/`
 - ✅ Outputs reorganizados con subdirectorios
 - ✅ Archivos duplicados/obsoletos eliminados
-- ✅ README.md mejorado con información técnica
+- ✅ README.md mejorado con información técnica (SIN tutoriales)
 - ✅ .gitignore completo agregado
 - ✅ READMEs para data/ y data/docs/
+- ✅ Debug movido a data/debug/ (elimina redundancia)
+- ✅ README.md limpio: solo info técnica/biológica
 
 El proyecto ahora tiene una estructura limpia, profesional y fácil de mantener.
 

@@ -528,17 +528,16 @@ Mosca/
 │   │   ├── 1_getting_started.ipynb    # Introducción
 │   │   ├── 2_kinematic_replay.ipynb   # Replay cinemático
 │   │   └── 3_fly_following.ipynb      # Seguimiento de mosca
+│   ├── debug/                         # Archivos de debug y análisis
+│   │   ├── TECHNICAL_ANALYSIS.md      # Análisis técnico de problemas
+│   │   └── SUMMARY_OF_WORK.md         # Resumen de trabajo realizado
 │   └── inverse_kinematics/            # Datos de cinemática inversa
 │
 ├── outputs/                            # Resultados de simulaciones
-│   └── YYYY-MM-DD_HH-MM-SS/           # Simulaciones timestamped
-│       ├── trajectory.csv              # Trayectoria completa
-│       ├── config.json                 # Parámetros usados
-│       └── simulation.mp4              # Video renderizado
-│
-├── debug/                              # Archivos de debug y análisis
-│   ├── TECHNICAL_ANALYSIS.md          # Análisis técnico de problemas
-│   └── SUMMARY_OF_WORK.md             # Resumen de trabajo realizado
+│   ├── simulations/                   # Simulaciones individuales timestamped
+│   ├── experiments/                   # Batch experiments organizados
+│   ├── debug/                         # Outputs de debug
+│   └── archive/                       # Outputs antiguos/legacy
 │
 └── README.md                           # Este archivo
 ```
@@ -572,76 +571,6 @@ Los parámetros del `ImprovedOlfactoryBrain` han sido ajustados para coincidir c
 ---
 
 ## Referencias Bibliográficas
-
-### Video Simulation & Visualization
-
-**Sistema de simulación completo con rendering a MP4** implementado en `tools/`:
-
-- `tools/run_simulation.py`: Script principal para ejecutar simulaciones individuales
-  - Auto-organiza outputs en timestamps `outputs/YYYY-MM-DD_HH-MM-SS/`
-  - Genera: `trajectory.csv` (trayectoria + métricas), `config.json` (parámetros), `simulation.mp4` (video)
-  - Fallback automático a simulación simple si FlyGym no está disponible
-  - Usa: `python tools/run_simulation.py --mode gradient --sigma 15.0 --threshold 0.1 --duration 5`
-
-- `tools/batch_experiments.py`: Ejecutar múltiples experimentos con parámetros variados
-  - 5 estrategias preconfiguradas: Binary Search, Gradient Taxis, Temporal Gradient, Wide Field, etc.
-  - Usa: `python tools/batch_experiments.py`
-  - Genera carpetas timestamped para cada experimento
-
-- `tools/render_simulation_video.py`: Renderizador de videos from CSV trajectories
-  - Visualización 2D de arena, campo de olor (heatmap), trayectoria de mosca
-  - Gráficos en tiempo real: distancia a fuente, concentración olfatoria
-  - Soporta reintento manual: `python tools/render_simulation_video.py --csv <path> --output <path>`
-
-- `tools/analyze_experiments.py`: Análisis comparativo y reporte HTML
-  - Extrae métricas de todos los experimentos (distancia final, olor máximo, etc.)
-  - Genera: `outputs/experiments_report.html` (dashboard visual embebiendo videos y tablas)
-  - Usa: `python tools/analyze_experiments.py outputs`
-
-**Estructura de outputs:**
-```
-outputs/
-├── generic/unknown/          # Simulaciones antiguas (sin timestamp original)
-│   ├── FLYGYM_INTEGRATION_REPORT.txt
-│   └── *.png
-├── 2026-03-12_11-28-06/      # Simulación individual gradient mode
-│   ├── trajectory.csv        # Trayectoria 300+ frames
-│   ├── config.json           # Parámetros reproducibles
-│   └── simulation.mp4        # Video 1400×600px @30fps
-├── 2026-03-12_11-28-16/      # Simulación individual
-├── ... (más experimentos)
-└── experiments_report.html   # Dashboard comparativo (abrir en navegador)
-```
-
-**Workflow típico:**
-```bash
-# 1. Simulación individual
-python tools/run_simulation.py --mode gradient --sigma 15.0 --duration 10
-
-# 2. Batch de 5 experimentos
-python tools/batch_experiments.py
-
-# 3. Análisis y reporte
-python tools/analyze_experiments.py outputs
-# Abrir outputs/experiments_report.html en navegador
-
-# 4. Reintento manual de video si falla
-python tools/render_simulation_video.py \
-    --csv outputs/2026-03-12_XX-XX-XX/trajectory.csv \
-    --output outputs/2026-03-12_XX-XX-XX/simulation.mp4
-```
-
-**Parámetros de línea de comandos (run_simulation.py):**
-- `--mode {binary, gradient, temporal_gradient}`: Estrategia de navegación
-- `--sigma FLOAT`: Ancho del campo olfatorio (mm), rango: 1-50
-- `--threshold FLOAT`: Sensibilidad cerebral (0.01-1.0)
-- `--forward-scale FLOAT`: Velocidad máxima (0-2.0)
-- `--turn-scale FLOAT`: Giro máximo (0-2.0)
-- `--duration FLOAT`: Duración simulación (segundos)
-- `--source-x, --source-y, --source-z`: Posición fuente (mm)
-- `--arena-x, --arena-y`: Dimensiones arena (mm)
-- `--fps INT`: Video frames per second (mayor = más pesado)
-- `--no-video`: Saltar rendering MP4
 
 ### Comportamiento Olfatorio en Drosophila
 
