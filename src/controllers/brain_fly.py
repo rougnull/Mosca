@@ -296,32 +296,81 @@ class BrainFly(Fly):
     
     def _hybrid_to_42dof(self, forward: float, turn: float) -> np.ndarray:
         """
-        Placeholder para convertir 2D a 42 DoF.
-        
-        En una versión real, se usaría la lógica de HybridTurningFly
-        para expandir [forward, turn] a amplitudes de 42 articulaciones.
+        Convert 2D [forward, turn] to 42 DoF joint angles using CPG.
+
+        Uses a Central Pattern Generator (CPG) network to generate
+        coordinated tripod gait patterns that convert high-level motor
+        commands into realistic joint angle trajectories.
+
+        Parameters
+        ----------
+        forward : float
+            Forward command [-1, 1]. Positive = forward, negative = backward.
+        turn : float
+            Turn command [-1, 1]. Positive = right turn, negative = left turn.
+
+        Returns
+        -------
+        np.ndarray
+            Array of 42 joint angles in radians.
         """
-        # Aquí podrías integrar lógica de CPG si está disponible
+        # Initialize CPG controller if not already done
+        if not hasattr(self, '_cpg_controller'):
+            try:
+                from controllers.cpg_controller import AdaptiveCPGController
+                # Use adaptive controller for smooth transitions
+                self._cpg_controller = AdaptiveCPGController(
+                    timestep=0.01,  # Assumes 100Hz simulation
+                    base_frequency=2.0  # 2 Hz stepping frequency
+                )
+                print("[BrainFly] Initialized CPG controller")
+            except ImportError:
+                print("[BrainFly] Warning: CPG controller not available, using simplified model")
+                self._cpg_controller = None
+
+        # Use CPG if available, otherwise fallback to simple model
+        if self._cpg_controller is not None:
+            return self._cpg_controller.step(forward, turn)
+        else:
+            # Fallback: simplified static pattern
+            return self._simple_fallback_pattern(forward, turn)
+
+    def _simple_fallback_pattern(self, forward: float, turn: float) -> np.ndarray:
+        """
+        Simple fallback pattern when CPG is not available.
+
+        This generates basic joint angles without dynamic coordination.
+        Should only be used for testing when CPG module is unavailable.
+        """
         action_42d = np.zeros(42)
-        
-        # Aplicar forward a movimientos laterales de las patas
-        # Aplicar turn a asimetría de movimiento
+
         forward = np.clip(forward, -1, 1)
         turn = np.clip(turn, -1, 1)
-        
-        # Ejemplo simplista: amplitudes de las tres patas por lado
-        # Estructura típica: 3 patas/lado × 6 DoF/pata = 18 DoF total por lado
-        for leg_idx in range(3):
-            # Pata izquierda
-            base_idx_L = leg_idx * 6
-            action_42d[base_idx_L:base_idx_L + 3] = 0.5 * forward  # forward bias
-            action_42d[base_idx_L + 3] = -0.2 * turn  # turning control
-            
-            # Pata derecha
-            base_idx_R = 18 + leg_idx * 6
-            action_42d[base_idx_R:base_idx_R + 3] = 0.5 * forward
-            action_42d[base_idx_R + 3] = 0.2 * turn
-        
+
+        # 6 legs × 7 DoF = 42 total
+        # Order: LF, LM, LH, RF, RM, RH
+        for leg_idx in range(6):
+            base_idx = leg_idx * 7
+
+            # Apply forward bias and turn modulation
+            is_left_leg = leg_idx < 3
+            turn_factor = -turn if is_left_leg else turn
+
+            # Coxa: horizontal rotation
+            action_42d[base_idx + 0] = 0.3 * forward
+            action_42d[base_idx + 1] = 0.1 * turn_factor  # Coxa_roll
+            action_42d[base_idx + 2] = 0.2 * turn_factor  # Coxa_yaw
+
+            # Femur: main support (natural bent position)
+            action_42d[base_idx + 3] = -0.8 + 0.2 * abs(forward)
+            action_42d[base_idx + 4] = 0.05  # Femur_roll
+
+            # Tibia: extension
+            action_42d[base_idx + 5] = 1.2 - 0.3 * abs(forward)
+
+            # Tarsus: minimal adjustment
+            action_42d[base_idx + 6] = 0.02
+
         return action_42d
     
     def get_odor_concentration(self) -> float:
