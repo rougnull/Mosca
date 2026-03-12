@@ -103,7 +103,8 @@ Mosca/
 │   └── docs/                        # Technical documentation
 │       ├── ARCHITECTURE.md          # System architecture
 │       ├── FIXES.md                 # Bug fixes & solutions
-│       └── CHANGELOG.md             # Version history
+│       ├── CHANGELOG.md             # Version history
+│       └── README.md                # Dev standards
 │
 └── outputs/                          # Simulation results
     └── simulations/physics_3d/      # Timestamped outputs
@@ -195,126 +196,16 @@ temporal_gradient_gain = 10.0
 ## Documentation
 
 **Technical Documentation** (in `data/docs/`):
+- **[README.md](data/docs/README.md)** - Development standards and project rules
 - **[ARCHITECTURE.md](data/docs/ARCHITECTURE.md)** - System design and components
 - **[FIXES.md](data/docs/FIXES.md)** - Bug fixes and solutions
 - **[CHANGELOG.md](data/docs/CHANGELOG.md)** - Version history and changes
 
 **For Developers:**
-1. Read `ARCHITECTURE.md` for system overview
-2. Read `FIXES.md` for common issues and solutions
-3. Check `CHANGELOG.md` for recent changes
-
-**For Users:**
-1. Follow Quick Start above
-2. Adjust parameters in simulation script
-3. Analyze output data (see Output section)
-
----
-
-## Usage Examples
-
-### Basic Simulation
-
-```python
-from tools.run_physics_based_simulation import PhysicsBasedOlfactorySimulation
-
-sim = PhysicsBasedOlfactorySimulation(
-    odor_source=(50.0, 50.0, 5.0),
-    odor_sigma=8.0,
-    odor_amplitude=100.0,
-    start_pos=(35.0, 35.0, 3.0),
-    sim_duration=10.0,
-    enable_rendering=False  # Fast physics-only mode
-)
-
-success = sim.run(save_video=False)
-output_dir = sim.save_data()
-print(f"Results saved to: {output_dir}")
-```
-
-### Custom Brain Controller
-
-```python
-from src.controllers.olfactory_brain import OlfactoryBrain
-import numpy as np
-
-class MyBrain(OlfactoryBrain):
-    def step(self, concentration, position, heading):
-        # Your custom control algorithm
-        forward = min(concentration * 2.0, 1.0)
-        turn = np.random.uniform(-0.1, 0.1)
-        return np.array([forward, turn])
-
-# Use in simulation
-brain = MyBrain()
-fly = BrainFly(brain=brain, odor_field=odor_field, ...)
-```
-
-### Batch Experiments
-
-```bash
-# Run multiple seeds
-for seed in {1..10}; do
-    python tools/run_physics_based_simulation.py --duration 20 --seed $seed
-done
-
-# Analyze results
-python tools/analyze_experiments.py outputs/simulations/physics_3d/
-```
-
----
-
-## Testing
-
-### Unit Tests
-
-```bash
-# Test individual modules
-python src/olfaction/odor_field.py
-python src/controllers/olfactory_brain.py
-python src/controllers/brain_fly.py
-```
-
-### Integration Tests
-
-```bash
-# Full simulation validation
-python tools/validate_simulation.py
-
-# Rendering validation (if enabled)
-python tools/diagnose_flygym_render.py
-```
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**1. Import Errors**
-```bash
-# Install required dependencies
-pip install flygym numpy
-```
-
-**2. Camera Errors**
-```bash
-# Run without rendering (default)
-python tools/run_physics_based_simulation.py --duration 10
-
-# Rendering is optional - use --enable-render only if needed
-```
-
-**3. Simulation Fails**
-```bash
-# Enable verbose output
-python tools/validate_simulation.py
-
-# Check diagnostic tools
-python tools/diagnose_flygym_render.py
-```
-
-See `data/docs/FIXES.md` for detailed solutions.
+1. Read `data/docs/README.md` for project standards
+2. Read `ARCHITECTURE.md` for system overview
+3. Read `FIXES.md` for common issues and solutions
+4. Check `CHANGELOG.md` for recent changes
 
 ---
 
@@ -341,7 +232,7 @@ See `data/docs/FIXES.md` for detailed solutions.
 ## Contributing
 
 Contributions welcome! Please:
-1. Follow existing code style
+1. Follow project standards in `data/docs/README.md`
 2. Add tests for new features
 3. Update documentation
 4. Reference biological literature where applicable
