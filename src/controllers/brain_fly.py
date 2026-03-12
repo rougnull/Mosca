@@ -246,6 +246,22 @@ class BrainFly(Fly):
         """
         self._last_obs = obs
 
+        # DEBUG: Log observation structure on first few steps
+        if not hasattr(self, '_debug_step_count'):
+            self._debug_step_count = 0
+        self._debug_step_count += 1
+
+        if self._debug_step_count <= 3:
+            print(f"\n[BrainFly Step {self._debug_step_count}]")
+            print(f"  Obs type: {type(obs)}")
+            if "fly" in obs:
+                print(f"  obs['fly'] type: {type(obs['fly'])}")
+                if isinstance(obs["fly"], (tuple, list)):
+                    print(f"  obs['fly'] length: {len(obs['fly'])}")
+                    if len(obs['fly']) >= 3:
+                        print(f"  obs['fly'][0] (pos): {obs['fly'][0]}")
+                        print(f"  obs['fly'][2] (euler): {obs['fly'][2]}")
+
         # Verificar si el cerebro es ImprovedOlfactoryBrain (requiere heading)
         brain_class_name = self.brain.__class__.__name__
 
@@ -258,8 +274,17 @@ class BrainFly(Fly):
             heading = self._extract_heading(obs)
             self._last_heading = heading  # Guardar para próximo step
 
+            # DEBUG: Log extracted values
+            if self._debug_step_count <= 3:
+                print(f"  Extracted pos: {head_pos}")
+                print(f"  Extracted heading: {heading:.6f} rad ({np.degrees(heading):.2f}°)")
+
             # 3. Procesar con cerebro mejorado (recibe campo completo, posición y heading)
             motor_signal = self.brain.step(self.odor_field, head_pos, heading)
+
+            # DEBUG: Log motor signal from brain
+            if self._debug_step_count <= 3:
+                print(f"  Brain output: forward={motor_signal[0]:.6f}, turn={motor_signal[1]:.6f}")
         else:
             # Usar versión legacy (solo recibe concentración escalar)
             # 1. Leer entrada sensorial
@@ -273,6 +298,14 @@ class BrainFly(Fly):
 
         # Store motor signal for diagnostics/logging
         self._last_motor_signal = motor_signal.copy()
+
+        # DEBUG: Verify storage
+        if self._debug_step_count <= 3:
+            print(f"  Stored motor_signal: {self._last_motor_signal}")
+            print(f"  Action type: {type(action)}")
+            if isinstance(action, dict) and "joints" in action:
+                joints = action["joints"]
+                print(f"  Action joints type: {type(joints)}, shape: {joints.shape if hasattr(joints, 'shape') else 'N/A'}")
 
         return action
     
