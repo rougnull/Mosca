@@ -29,8 +29,15 @@ import sys
 from pathlib import Path
 import pickle
 from datetime import datetime
-from tqdm import tqdm
 import argparse
+
+# Try to import tqdm for progress bars (optional)
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
+    tqdm = None
 
 # Add src to path
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -247,7 +254,24 @@ class PhysicsBasedOlfactorySimulation:
         n_steps = int(self.sim_duration / self.timestep)
         video_frames = []
 
-        with tqdm(total=n_steps, desc="  Simulating") as pbar:
+        if HAS_TQDM:
+            # Use tqdm progress bar if available
+            with tqdm(total=n_steps, desc="  Simulating") as pbar:
+                for step_idx in range(n_steps):
+                    if not self.step():
+                        print(f"  [!] Simulation terminated early at step {step_idx}")
+                        break
+
+                    # Render frame if needed
+                    if save_video and (step_idx % self.render_interval == 0):
+                        frame = self.sim.render()[0]  # Get first camera
+                        video_frames.append(frame)
+
+                    pbar.update(1)
+        else:
+            # Fallback: print progress at intervals
+            print(f"  Simulating {n_steps} steps...")
+            progress_interval = max(1, n_steps // 20)  # Print 20 updates
             for step_idx in range(n_steps):
                 if not self.step():
                     print(f"  [!] Simulation terminated early at step {step_idx}")
@@ -258,7 +282,10 @@ class PhysicsBasedOlfactorySimulation:
                     frame = self.sim.render()[0]  # Get first camera
                     video_frames.append(frame)
 
-                pbar.update(1)
+                # Print progress updates
+                if step_idx % progress_interval == 0 or step_idx == n_steps - 1:
+                    percent = (step_idx + 1) / n_steps * 100
+                    print(f"  Progress: {percent:.1f}% ({step_idx + 1}/{n_steps} steps)")
 
         print("  [OK] Simulation completed")
 

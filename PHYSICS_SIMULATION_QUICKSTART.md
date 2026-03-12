@@ -10,8 +10,11 @@ This guide shows how to run the new physics-based simulation that fixes the 3D r
 # Install FlyGym (required)
 pip install flygym
 
-# Install video support (optional)
+# Install video support (optional, but recommended)
 pip install opencv-python
+
+# Install progress bars (optional, but recommended)
+pip install tqdm
 ```
 
 ### 2. Run Simulation

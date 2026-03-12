@@ -22,8 +22,15 @@ from pathlib import Path
 import numpy as np
 import pickle
 from datetime import datetime
-from tqdm import tqdm
 import argparse
+
+# Try to import tqdm for progress bars (optional)
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
+    tqdm = None
 
 # Add src to path
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -291,14 +298,27 @@ class CompleteOlfactorySimulation:
             True si exitoso
         """
         print(f"\n[1/3] Ejecutando simulación ({self.n_steps} pasos)...")
-        
-        with tqdm(total=self.n_steps, desc="  Simulando") as pbar:
+
+        if HAS_TQDM:
+            # Use tqdm progress bar if available
+            with tqdm(total=self.n_steps, desc="  Simulando") as pbar:
+                for step_idx in range(self.n_steps):
+                    if not self.step():
+                        print("  [X] Simulación interrumpida")
+                        return False
+                    pbar.update(1)
+        else:
+            # Fallback: print progress at intervals
+            progress_interval = max(1, self.n_steps // 20)  # Print 20 updates
             for step_idx in range(self.n_steps):
                 if not self.step():
                     print("  [X] Simulación interrumpida")
                     return False
-                pbar.update(1)
-        
+                # Print progress updates
+                if step_idx % progress_interval == 0 or step_idx == self.n_steps - 1:
+                    percent = (step_idx + 1) / self.n_steps * 100
+                    print(f"  Progreso: {percent:.1f}% ({step_idx + 1}/{self.n_steps} pasos)")
+
         print("  [OK] Simulación completada")
         return True
     
