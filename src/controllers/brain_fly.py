@@ -126,7 +126,15 @@ class BrainFly(Fly):
             Posición [x, y, z] en mm.
         """
         try:
-            if "head_pos" in obs:
+            # Opción 1: SingleFlySimulation structure: obs["fly"] = (pos, quat, euler, ...)
+            if "fly" in obs and isinstance(obs["fly"], (tuple, list)) and len(obs["fly"]) >= 1:
+                # obs["fly"][0] = position array [x, y, z]
+                position = obs["fly"][0]
+                if hasattr(position, '__len__') and len(position) >= 3:
+                    return np.array(position)
+
+            # Opción 2: Nested dict structure
+            elif "head_pos" in obs:
                 return np.array(obs["head_pos"])
             elif "Nuro" in obs and "head_pos" in obs["Nuro"]:
                 return np.array(obs["Nuro"]["head_pos"])
@@ -154,12 +162,19 @@ class BrainFly(Fly):
             Heading en radianes (ángulo en plano XY).
         """
         try:
-            # Opción 1: Si hay quaternion de orientación
-            if "fly_orientation" in obs:
+            # Opción 1: SingleFlySimulation structure: obs["fly"] = (pos, quat, euler, ...)
+            if "fly" in obs and isinstance(obs["fly"], (tuple, list)) and len(obs["fly"]) >= 3:
+                # obs["fly"][2] = orientation as Euler angles [roll, pitch, yaw]
+                orientation = obs["fly"][2]
+                if hasattr(orientation, '__len__') and len(orientation) >= 3:
+                    return float(orientation[2])  # yaw is third element
+
+            # Opción 2: Si hay quaternion de orientación
+            elif "fly_orientation" in obs:
                 quat = obs["fly_orientation"]
                 return self._quaternion_to_yaw(quat)
 
-            # Opción 2: Si FlyGym proporciona orientación directamente
+            # Opción 3: Si FlyGym proporciona orientación directamente
             elif "orientation" in obs:
                 # Puede ser [roll, pitch, yaw] o quaternion
                 orientation = obs["orientation"]
@@ -168,13 +183,13 @@ class BrainFly(Fly):
                 elif len(orientation) >= 3:  # Euler angles
                     return float(orientation[2])  # yaw es el tercer elemento
 
-            # Opción 3: Calcular desde velocidad si está disponible
+            # Opción 4: Calcular desde velocidad si está disponible
             elif "fly_velocity" in obs:
                 vel = obs["fly_velocity"]
                 if len(vel) >= 2 and (abs(vel[0]) > 1e-6 or abs(vel[1]) > 1e-6):
                     return np.arctan2(vel[1], vel[0])
 
-            # Opción 4: Usar orientación almacenada o default
+            # Opción 5: Usar orientación almacenada o default
             if hasattr(self, '_last_heading'):
                 return self._last_heading
             else:

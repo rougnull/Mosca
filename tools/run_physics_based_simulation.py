@@ -489,7 +489,7 @@ def main():
         odor_source=(50.0, 50.0, 5.0),
         odor_sigma=8.0,
         odor_amplitude=100.0,
-        start_pos=(35.0, 35.0, 3.0),
+        start_pos=(35.0, 35.0, 0.5),  # Lower Z for ground contact
         sim_duration=args.duration,
         timestep=1e-4,  # 0.1ms physics timestep
         render_fps=30,
