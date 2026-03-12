@@ -1,0 +1,24 @@
+======================================================================
+ANÁLISIS DE DATOS DE SIMULACIÓN
+======================================================================
+Archivo: outputs/simulations/physics_3d/2026-03-12_19_33/simulation_data.pkl
+
+⚠️  ADVERTENCIA: numpy no está instalado
+   Algunas funciones de análisis estarán limitadas
+   Los datos numpy se convertirán a listas de Python
+   Instala numpy con: pip install numpy
+
+Cargando archivo pickle...
+⚠️  Intentando cargar archivo sin numpy...
+   (Los archivos creados con numpy requieren numpy para cargarse)
+
+❌ ERROR: No se puede cargar el archivo pickle sin numpy
+   Tipo de error: UnpicklingError
+
+   Este archivo contiene arrays de numpy que REQUIEREN numpy instalado.
+   
+   SOLUCIÓN: Instala numpy con el siguiente comando:
+   pip install numpy
+
+   Después vuelve a ejecutar este script.
+

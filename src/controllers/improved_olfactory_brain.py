@@ -68,6 +68,7 @@ class ImprovedOlfactoryBrain:
         
         self._concentration_history = []
         self._max_history = 20
+        self._debug_step_count = 0  # DEBUG: Track calls
     
     def step(
         self,
@@ -94,6 +95,13 @@ class ImprovedOlfactoryBrain:
             - forward: basado en CAMBIO temporal de concentración (d C/dt)
             - turn: basado en DIFERENCIA bilateral del gradient
         """
+        # DEBUG: Print inputs on first few steps
+        self._debug_step_count += 1
+        if self._debug_step_count <= 3:
+            print(f"\n[Brain Step {self._debug_step_count}]")
+            print(f"  Position: {current_position}")
+            print(f"  Heading: {heading_radians:.4f} rad ({np.degrees(heading_radians):.1f}°)")
+
         # 1. Sensear concentración en centro
         conc_center = float(odor_field.concentration_at(current_position))
         
@@ -129,7 +137,8 @@ class ImprovedOlfactoryBrain:
         else:
             # FIRST STEP: Use small constant to initiate movement (cold start)
             # Without this, the fly never moves and we get stuck at 0
-            conc_change = 0.1  # Small positive value to bootstrap forward movement
+            # Use larger value (0.5) to ensure sufficient initial movement
+            conc_change = 0.5  # Positive value to bootstrap forward movement
         
         # Guardar en historial
         self._concentration_history.append(conc_center)
@@ -138,7 +147,15 @@ class ImprovedOlfactoryBrain:
         
         # 4. Calcular diferencia bilateral de gradiente (espacial)
         gradient_difference = conc_left - conc_right
-        
+
+        # DEBUG: Print concentration values on first few steps
+        if self._debug_step_count <= 3:
+            print(f"  Conc center: {conc_center:.6f}")
+            print(f"  Conc left: {conc_left:.6f}")
+            print(f"  Conc right: {conc_right:.6f}")
+            print(f"  Gradient diff (L-R): {gradient_difference:.6f}")
+            print(f"  Conc change: {conc_change if 'conc_change' in locals() else 'N/A'}")
+
         # 5. Generar acciones motoras:
         
         # FORWARD: solo cuando concentración está AUMENTANDO
@@ -149,7 +166,11 @@ class ImprovedOlfactoryBrain:
         # conc_left > conc_right → gradiente_difference positivo → girar izquierda (negativo en código)
         # Pero necesitamos verificar el signo
         turn = self.turn_scale * np.clip(gradient_difference, -1, 1)
-        
+
+        # DEBUG: Print outputs on first few steps
+        if self._debug_step_count <= 3:
+            print(f"  Motor signal: forward={forward:.6f}, turn={turn:.6f}")
+
         return np.array([forward, turn])
     
     def get_diagnostics(self) -> dict:

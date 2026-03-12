@@ -145,10 +145,10 @@ class PhysicsBasedOlfactorySimulation:
         self.fly = BrainFly(
             brain=self.brain,
             odor_field=self.odor_field,
-            init_pose="stretch",
+            init_pose="tripod",  # Use tripod (standing) pose instead of stretch
             actuated_joints=all_leg_dofs,  # All 42 DoF
             control="position",  # Position control (absolute angles)
-            spawn_pos=start_pos,
+            spawn_pos=(start_pos[0], start_pos[1], 0.5),  # Lower Z to ensure ground contact
             motor_mode="direct_joints",  # Use CPG to convert to 42 DoF
             enable_adhesion=True,  # Enable tarsal adhesion for proper ground contact
         )

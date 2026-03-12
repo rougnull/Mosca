@@ -124,7 +124,8 @@ class SimplifiedTripodCPG:
             phase = self.phases[leg_idx]
 
             # Compute amplitude modulation (stronger with higher forward command)
-            amplitude = 0.3 + 0.7 * abs(forward)
+            # Use higher baseline (0.5) for better stability
+            amplitude = 0.5 + 0.5 * abs(forward)
 
             # Determine if leg is in stance or swing phase
             # Stance: phase ∈ [0, π] - leg on ground, pushing
@@ -211,7 +212,7 @@ class AdaptiveCPGController(SimplifiedTripodCPG):
         # Smooth state tracking
         self.prev_forward = 0.0
         self.prev_turn = 0.0
-        self.current_amplitude = 0.3
+        self.current_amplitude = 0.5  # Match new baseline
 
         # Smoothing parameters
         self.command_smoothing = 0.9  # 0.0 = no smoothing, 1.0 = max smoothing
@@ -244,7 +245,8 @@ class AdaptiveCPGController(SimplifiedTripodCPG):
         self.prev_turn = smoothed_turn
 
         # Ramp amplitude smoothly
-        target_amplitude = 0.3 + 0.7 * abs(smoothed_forward)
+        # Use higher baseline (0.5) to match SimplifiedTripodCPG
+        target_amplitude = 0.5 + 0.5 * abs(smoothed_forward)
         if self.current_amplitude < target_amplitude:
             self.current_amplitude = min(target_amplitude,
                                         self.current_amplitude + self.amplitude_ramp_rate)
