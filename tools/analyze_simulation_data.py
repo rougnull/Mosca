@@ -315,12 +315,21 @@ def analyze_pkl_file(pkl_path):
     # Print with explicit flush and error handling for type
     try:
         data_type = type(data)
-        type_str = str(data_type)
-        print(f"Tipo de datos: {type_str}", flush=True)
+        sys.stdout.flush()
+        type_name = data_type.__name__
+        sys.stdout.flush()
+        type_module = getattr(data_type, '__module__', 'builtins')
+        sys.stdout.flush()
+        print(f"Tipo de datos: {type_module}.{type_name}", flush=True)
         sys.stdout.flush()
     except Exception as e:
         print(f"Tipo de datos: [Error al obtener tipo: {e}]", flush=True)
         sys.stdout.flush()
+        # Fallback to basic type info
+        try:
+            print(f"Tipo de datos (fallback): {type(data).__name__}", flush=True)
+        except:
+            print(f"Tipo de datos: Unknown", flush=True)
 
     if isinstance(data, dict):
         print(f"\nClaves en datos: {list(data.keys())[:20]}", flush=True)
