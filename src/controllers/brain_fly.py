@@ -279,6 +279,7 @@ class BrainFly(Fly):
             # o simplemente retornar el array si se usa directamente
             return {
                 "joints": np.array([forward, turn]),
+                "adhesion": np.ones(6),  # Mantener adhesión activa en todas las patas
             }
         
         elif self.motor_mode == "direct_joints":
@@ -289,6 +290,7 @@ class BrainFly(Fly):
             action_42d = self._hybrid_to_42dof(forward, turn)
             return {
                 "joints": action_42d,
+                "adhesion": np.ones(6),  # Mantener adhesión activa en todas las patas
             }
         
         else:

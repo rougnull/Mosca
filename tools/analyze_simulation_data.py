@@ -11,7 +11,8 @@ Analiza el archivo .pkl de la simulación para diagnosticar:
 
 USO:
     python tools/analyze_simulation_data.py outputs/simulations/chemotaxis_3d/2026-03-12_16_49/simulation_trajectory_3d.pkl
-    python tools/analyze_simulation_data.py outputs/simulations/physics_3d/2026-03-12_17_44/simulation_data.pkl
+    python tools/analyze_simulation_data.py outputs/simulations/physics_3d/2026-03-12_17_44/simulation_data.
+    python tools/analyze_simulation_data.py outputs/simulations/physics_3d/2026-03-12_19_18/simulation_data.pkl
 """
 
 import sys
