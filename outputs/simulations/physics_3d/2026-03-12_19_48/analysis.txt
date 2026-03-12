@@ -1,0 +1,91 @@
+======================================================================
+ANÁLISIS DE DATOS DE SIMULACIÓN
+======================================================================
+Archivo: C:\Users\eduar\Documents\Workspace\NeuroMechFly Sim\outputs\simulations\physics_3d\2026-03-12_19_48\simulation_data.pkl
+
+Cargando archivo pickle...
+Archivo cargado exitosamente.
+Tipo de datos: builtins.dict
+
+Claves en datos: ['times', 'positions', 'headings', 'orientations', 'odor_concentrations', 'brain_actions', 'joint_angles', 'contact_forces']
+
+times:
+  Tipo: numpy.ndarray
+  Shape: (50000,)
+  Primeros valores: [0.     0.0001 0.0002]
+  Últimos valores: [4.9997 4.9998 4.9999]
+
+positions:
+  Tipo: numpy.ndarray
+  Shape: (50000, 3)
+  Primeros valores: [[35.014843  35.007317   4.2821655]
+ [35.012367  35.007336   4.28386  ]
+ [35.009148  35.007362   4.286396 ]]
+  Últimos valores: [[31.761383   39.137447   -0.28248885]
+ [31.761497   39.13784    -0.2823815 ]
+ [31.761654   39.138237   -0.2823415 ]]
+
+headings:
+  Tipo: numpy.ndarray
+  Shape: (50000,)
+  Primeros valores: [0.83618265 0.8359036  0.83546287]
+  Últimos valores: [-1.9272127 -1.9273237 -1.9274378]
+
+orientations:
+  Tipo: numpy.ndarray
+  Shape: (50000, 3)
+  Primeros valores: [[1.5705222e+00 4.5326326e-04 8.3618265e-01]
+ [1.5704751e+00 7.5531629e-04 8.3590358e-01]
+ [1.5704076e+00 1.2256342e-03 8.3546287e-01]]
+  Últimos valores: [[-0.80119675 -0.01498373 -1.9272127 ]
+ [-0.8012861  -0.01503633 -1.9273237 ]
+ [-0.8013731  -0.01507824 -1.9274378 ]]
+
+odor_concentrations:
+  Tipo: numpy.ndarray
+  Shape: (50000,)
+  Primeros valores: [2.9763896  2.97473438 2.97259491]
+  Últimos valores: [2.37862511 2.3788824  2.37915647]
+
+======================================================================
+ANÁLISIS DE INFORMACIÓN CRÍTICA
+======================================================================
+
+1. POSICIÓN:
+  positions: shape=(50000, 3)
+    Z inicial: 4.2822
+    Z final: -0.2823
+    Z mínimo: -0.2872
+    Z máximo: 4.3468
+    ⚠️  PROBLEMA: La mosca se hundió bajo el suelo (Z < 0)
+
+2. ORIENTACIÓN:
+  headings: shape=(50000,)
+    Inicial: 0.8361826539039612
+    Final: -1.9274377822875977
+    Inicial (grados): 47.9°
+    Final (grados): -110.4°
+  orientations: shape=(50000, 3)
+    Inicial: [1.5705222e+00 4.5326326e-04 8.3618265e-01]
+    Final: [-0.8013731  -0.01507824 -1.9274378 ]
+
+3. ÁNGULOS DE JOINTS:
+  Encontrados 1 joints
+  Ejemplo (joint_angles): shape=(50000, 42)
+    Valores iniciales: [ 2.6833013e-01  6.9457659e-04  5.1386622e-03 -2.2168896e+00
+  8.5825787e-04]
+    Rango: [-2.5980, 2.5978]
+
+4. ACCIONES MOTORAS:
+  brain_actions: shape=(50000, 2)
+    Media: [2.0000000e-05 1.5261783e-15]
+    Std: [4.47209123e-03 1.63491423e-28]
+
+5. INFORMACIÓN DE TIEMPO:
+  Total de frames: 50000
+  dt entre frames: 0.000100s
+  FPS simulación: 10000.0
+
+======================================================================
+FIN DEL ANÁLISIS
+======================================================================

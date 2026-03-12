@@ -50,20 +50,23 @@ class BrainFly(Fly):
         odor_field,
         sensor_position: str = "head",
         motor_mode: str = "hybrid_turning",
+        timestep: float = 1e-4,  # Simulation timestep for CPG controller
         *args,
         **kwargs
     ):
         """Inicializar BrainFly."""
         super().__init__(*args, **kwargs)
-        
+
         self.brain = brain
         self.odor_field = odor_field
         self.sensor_position = sensor_position
         self.motor_mode = motor_mode
-        
+        self.timestep = timestep  # Store for CPG controller initialization
+
         # Buffer de observaciones para acceso rápido
         self._last_obs = None
         self._odor_concentration = 0.0
+        self._last_motor_signal = np.zeros(2)  # Store last [forward, turn] command
     
     def get_sensory_input(self, obs: Dict[str, Any]) -> float:
         """
@@ -110,34 +113,204 @@ class BrainFly(Fly):
         
         return self._odor_concentration
     
+    def _extract_head_position(self, obs: Dict[str, Any]) -> np.ndarray:
+        """
+        Extraer posición de la cabeza de las observaciones.
+
+        Parameters
+        ----------
+        obs : Dict[str, Any]
+            Observaciones de FlyGym.
+
+        Returns
+        -------
+        np.ndarray
+            Posición [x, y, z] en mm.
+        """
+        try:
+            # Opción 1: SingleFlySimulation structure: obs["fly"] = (pos, quat, euler, ...)
+            # Note: FlyGym may return this as ndarray, tuple, or list
+            if "fly" in obs and isinstance(obs["fly"], (tuple, list, np.ndarray)) and len(obs["fly"]) >= 1:
+                # obs["fly"][0] = position array [x, y, z]
+                position = obs["fly"][0]
+                if hasattr(position, '__len__') and len(position) >= 3:
+                    return np.array(position)
+
+            # Opción 2: Nested dict structure
+            elif "head_pos" in obs:
+                return np.array(obs["head_pos"])
+            elif "Nuro" in obs and "head_pos" in obs["Nuro"]:
+                return np.array(obs["Nuro"]["head_pos"])
+            elif "fly" in obs and "position" in obs["fly"]:
+                return np.array(obs["fly"]["position"])
+            else:
+                # Fallback: posición del cuerpo o centro de masa
+                return obs.get("body_positions", {}).get("head", np.zeros(3))
+        except Exception as e:
+            print(f"Warning: Error extrayendo posición de cabeza: {e}")
+            return np.zeros(3)
+
+    def _extract_heading(self, obs: Dict[str, Any]) -> float:
+        """
+        Extraer orientación (yaw/heading) de la mosca desde observaciones.
+
+        Parameters
+        ----------
+        obs : Dict[str, Any]
+            Observaciones de FlyGym.
+
+        Returns
+        -------
+        float
+            Heading en radianes (ángulo en plano XY).
+        """
+        try:
+            # Opción 1: SingleFlySimulation structure: obs["fly"] = (pos, quat, euler, ...)
+            # Note: FlyGym may return this as ndarray, tuple, or list
+            if "fly" in obs and isinstance(obs["fly"], (tuple, list, np.ndarray)) and len(obs["fly"]) >= 3:
+                # obs["fly"][2] = orientation as Euler angles [roll, pitch, yaw]
+                orientation = obs["fly"][2]
+                if hasattr(orientation, '__len__') and len(orientation) >= 3:
+                    return float(orientation[2])  # yaw is third element
+
+            # Opción 2: Si hay quaternion de orientación
+            elif "fly_orientation" in obs:
+                quat = obs["fly_orientation"]
+                return self._quaternion_to_yaw(quat)
+
+            # Opción 3: Si FlyGym proporciona orientación directamente
+            elif "orientation" in obs:
+                # Puede ser [roll, pitch, yaw] o quaternion
+                orientation = obs["orientation"]
+                if len(orientation) == 4:  # Quaternion
+                    return self._quaternion_to_yaw(orientation)
+                elif len(orientation) >= 3:  # Euler angles
+                    return float(orientation[2])  # yaw es el tercer elemento
+
+            # Opción 4: Calcular desde velocidad si está disponible
+            elif "fly_velocity" in obs:
+                vel = obs["fly_velocity"]
+                if len(vel) >= 2 and (abs(vel[0]) > 1e-6 or abs(vel[1]) > 1e-6):
+                    return np.arctan2(vel[1], vel[0])
+
+            # Opción 5: Usar orientación almacenada o default
+            if hasattr(self, '_last_heading'):
+                return self._last_heading
+            else:
+                return 0.0
+
+        except Exception as e:
+            print(f"Warning: Error extrayendo heading: {e}")
+            return getattr(self, '_last_heading', 0.0)
+
+    def _quaternion_to_yaw(self, quat: np.ndarray) -> float:
+        """
+        Convertir quaternion a ángulo yaw (rotación en plano XY).
+
+        Parameters
+        ----------
+        quat : np.ndarray
+            Quaternion [w, x, y, z] o [x, y, z, w] dependiendo de convención.
+
+        Returns
+        -------
+        float
+            Ángulo yaw en radianes.
+        """
+        try:
+            # Intentar ambas convenciones
+            if len(quat) == 4:
+                # Convención [w, x, y, z]
+                w, x, y, z = quat
+                # Fórmula: yaw = atan2(2(wz + xy), 1 - 2(y² + z²))
+                yaw = np.arctan2(2.0 * (w * z + x * y),
+                                 1.0 - 2.0 * (y * y + z * z))
+                return float(yaw)
+        except Exception:
+            pass
+
+        return 0.0
+
     def step(self, obs: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
         Ejecutar un paso sensoriomotor: leer olor → cerebro → acción.
-        
+
         Este método se puede llamar externamente o integrarse en el bucle
         de simulación principal.
-        
+
         Parameters
         ----------
         obs : Dict[str, Any]
             Observaciones del entorno.
-        
+
         Returns
         -------
         Dict[str, Any]
             Acciones para pasarle a Simulation.step()
         """
         self._last_obs = obs
-        
-        # 1. Leer entrada sensorial
-        odor = self.get_sensory_input(obs)
-        
-        # 2. Procesar con cerebro
-        motor_signal = self.brain.step(odor)  # [forward, turn]
-        
+
+        # DEBUG: Log observation structure on first few steps
+        if not hasattr(self, '_debug_step_count'):
+            self._debug_step_count = 0
+        self._debug_step_count += 1
+
+        if self._debug_step_count <= 3:
+            print(f"\n[BrainFly Step {self._debug_step_count}]")
+            print(f"  Obs type: {type(obs)}")
+            if "fly" in obs:
+                print(f"  obs['fly'] type: {type(obs['fly'])}")
+                if isinstance(obs["fly"], (tuple, list, np.ndarray)):
+                    print(f"  obs['fly'] length: {len(obs['fly'])}")
+                    if len(obs['fly']) >= 3:
+                        print(f"  obs['fly'][0] (pos): {obs['fly'][0]}")
+                        print(f"  obs['fly'][2] (euler): {obs['fly'][2]}")
+
+        # Verificar si el cerebro es ImprovedOlfactoryBrain (requiere heading)
+        brain_class_name = self.brain.__class__.__name__
+
+        if brain_class_name == "ImprovedOlfactoryBrain":
+            # Usar versión mejorada con heading
+            # 1. Extraer posición de la cabeza
+            head_pos = self._extract_head_position(obs)
+
+            # 2. Extraer orientación (heading)
+            heading = self._extract_heading(obs)
+            self._last_heading = heading  # Guardar para próximo step
+
+            # DEBUG: Log extracted values
+            if self._debug_step_count <= 3:
+                print(f"  Extracted pos: {head_pos}")
+                print(f"  Extracted heading: {heading:.6f} rad ({np.degrees(heading):.2f}°)")
+
+            # 3. Procesar con cerebro mejorado (recibe campo completo, posición y heading)
+            motor_signal = self.brain.step(self.odor_field, head_pos, heading)
+
+            # DEBUG: Log motor signal from brain
+            if self._debug_step_count <= 3:
+                print(f"  Brain output: forward={motor_signal[0]:.6f}, turn={motor_signal[1]:.6f}")
+        else:
+            # Usar versión legacy (solo recibe concentración escalar)
+            # 1. Leer entrada sensorial
+            odor = self.get_sensory_input(obs)
+
+            # 2. Procesar con cerebro
+            motor_signal = self.brain.step(odor)  # [forward, turn]
+
         # 3. Convertir señal cerebral a acciones motoras
         action = self._motor_signal_to_action(motor_signal)
-        
+
+        # Store motor signal for diagnostics/logging
+        self._last_motor_signal = motor_signal.copy()
+
+        # DEBUG: Verify storage
+        if self._debug_step_count <= 3:
+            print(f"  Stored motor_signal: {self._last_motor_signal}")
+            print(f"  Action type: {type(action)}")
+            if isinstance(action, dict) and "joints" in action:
+                joints = action["joints"]
+                print(f"  Action joints type: {type(joints)}, shape: {joints.shape if hasattr(joints, 'shape') else 'N/A'}")
+
         return action
     
     def _motor_signal_to_action(self, motor_signal: np.ndarray) -> Dict[str, Any]:
@@ -162,6 +335,7 @@ class BrainFly(Fly):
             # o simplemente retornar el array si se usa directamente
             return {
                 "joints": np.array([forward, turn]),
+                "adhesion": np.ones(6),  # Mantener adhesión activa en todas las patas
             }
         
         elif self.motor_mode == "direct_joints":
@@ -172,6 +346,7 @@ class BrainFly(Fly):
             action_42d = self._hybrid_to_42dof(forward, turn)
             return {
                 "joints": action_42d,
+                "adhesion": np.ones(6),  # Mantener adhesión activa en todas las patas
             }
         
         else:
@@ -179,32 +354,82 @@ class BrainFly(Fly):
     
     def _hybrid_to_42dof(self, forward: float, turn: float) -> np.ndarray:
         """
-        Placeholder para convertir 2D a 42 DoF.
-        
-        En una versión real, se usaría la lógica de HybridTurningFly
-        para expandir [forward, turn] a amplitudes de 42 articulaciones.
+        Convert 2D [forward, turn] to 42 DoF joint angles using CPG.
+
+        Uses a Central Pattern Generator (CPG) network to generate
+        coordinated tripod gait patterns that convert high-level motor
+        commands into realistic joint angle trajectories.
+
+        Parameters
+        ----------
+        forward : float
+            Forward command [-1, 1]. Positive = forward, negative = backward.
+        turn : float
+            Turn command [-1, 1]. Positive = right turn, negative = left turn.
+
+        Returns
+        -------
+        np.ndarray
+            Array of 42 joint angles in radians.
         """
-        # Aquí podrías integrar lógica de CPG si está disponible
+        # Initialize CPG controller if not already done
+        if not hasattr(self, '_cpg_controller'):
+            try:
+                from controllers.cpg_controller import AdaptiveCPGController
+                # Use adaptive controller for smooth transitions
+                # CRITICAL: Use the simulation timestep, not a hardcoded value
+                self._cpg_controller = AdaptiveCPGController(
+                    timestep=self.timestep,  # Use actual simulation timestep
+                    base_frequency=2.0  # 2 Hz stepping frequency
+                )
+                print(f"[BrainFly] Initialized CPG controller with timestep={self.timestep}")
+            except ImportError:
+                print("[BrainFly] Warning: CPG controller not available, using simplified model")
+                self._cpg_controller = None
+
+        # Use CPG if available, otherwise fallback to simple model
+        if self._cpg_controller is not None:
+            return self._cpg_controller.step(forward, turn)
+        else:
+            # Fallback: simplified static pattern
+            return self._simple_fallback_pattern(forward, turn)
+
+    def _simple_fallback_pattern(self, forward: float, turn: float) -> np.ndarray:
+        """
+        Simple fallback pattern when CPG is not available.
+
+        This generates basic joint angles without dynamic coordination.
+        Should only be used for testing when CPG module is unavailable.
+        """
         action_42d = np.zeros(42)
-        
-        # Aplicar forward a movimientos laterales de las patas
-        # Aplicar turn a asimetría de movimiento
+
         forward = np.clip(forward, -1, 1)
         turn = np.clip(turn, -1, 1)
-        
-        # Ejemplo simplista: amplitudes de las tres patas por lado
-        # Estructura típica: 3 patas/lado × 6 DoF/pata = 18 DoF total por lado
-        for leg_idx in range(3):
-            # Pata izquierda
-            base_idx_L = leg_idx * 6
-            action_42d[base_idx_L:base_idx_L + 3] = 0.5 * forward  # forward bias
-            action_42d[base_idx_L + 3] = -0.2 * turn  # turning control
-            
-            # Pata derecha
-            base_idx_R = 18 + leg_idx * 6
-            action_42d[base_idx_R:base_idx_R + 3] = 0.5 * forward
-            action_42d[base_idx_R + 3] = 0.2 * turn
-        
+
+        # 6 legs × 7 DoF = 42 total
+        # Order: LF, LM, LH, RF, RM, RH
+        for leg_idx in range(6):
+            base_idx = leg_idx * 7
+
+            # Apply forward bias and turn modulation
+            is_left_leg = leg_idx < 3
+            turn_factor = -turn if is_left_leg else turn
+
+            # Coxa: horizontal rotation
+            action_42d[base_idx + 0] = 0.3 * forward
+            action_42d[base_idx + 1] = 0.1 * turn_factor  # Coxa_roll
+            action_42d[base_idx + 2] = 0.2 * turn_factor  # Coxa_yaw
+
+            # Femur: main support (natural bent position)
+            action_42d[base_idx + 3] = -0.8 + 0.2 * abs(forward)
+            action_42d[base_idx + 4] = 0.05  # Femur_roll
+
+            # Tibia: extension
+            action_42d[base_idx + 5] = 1.2 - 0.3 * abs(forward)
+
+            # Tarsus: minimal adjustment
+            action_42d[base_idx + 6] = 0.02
+
         return action_42d
     
     def get_odor_concentration(self) -> float:

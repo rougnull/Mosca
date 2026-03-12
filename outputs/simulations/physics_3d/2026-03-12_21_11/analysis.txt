@@ -1,0 +1,90 @@
+======================================================================
+ANÁLISIS DE DATOS DE SIMULACIÓN
+======================================================================
+Archivo: C:\Users\eduar\Documents\Workspace\NeuroMechFly Sim\outputs\simulations\physics_3d\2026-03-12_21_11\simulation_data.pkl
+
+Cargando archivo pickle...
+Archivo cargado exitosamente.
+Tipo de datos: builtins.dict
+
+Claves en datos: ['times', 'positions', 'headings', 'orientations', 'odor_concentrations', 'brain_actions', 'joint_angles', 'contact_forces']
+
+times:
+  Tipo: numpy.ndarray
+  Shape: (50000,)
+  Primeros valores: [0.     0.0001 0.0002]
+  Últimos valores: [4.9997 4.9998 4.9999]
+
+positions:
+  Tipo: numpy.ndarray
+  Shape: (50000, 3)
+  Primeros valores: [[35.015446  35.007088   1.782717 ]
+ [35.01399   35.006577   1.7850533]
+ [35.01202   35.005882   1.7881501]]
+  Últimos valores: [[36.76807    36.966156    0.26312798]
+ [36.76808    36.96613     0.26310006]
+ [36.768097   36.966106    0.26307166]]
+
+headings:
+  Tipo: numpy.ndarray
+  Shape: (50000,)
+  Primeros valores: [0.83650315 0.8370181  0.8380121 ]
+  Últimos valores: [-0.4899435  -0.4902826  -0.49062958]
+
+orientations:
+  Tipo: numpy.ndarray
+  Shape: (50000, 3)
+  Primeros valores: [[ 1.5704869e+00  1.6295076e-04  8.3650315e-01]
+ [ 1.5703968e+00 -2.8583474e-04  8.3701807e-01]
+ [ 1.5702841e+00 -1.2135962e-03  8.3801210e-01]]
+  Últimos valores: [[-0.5410917   1.3476944  -0.4899435 ]
+ [-0.54150563  1.3476902  -0.4902826 ]
+ [-0.5419268   1.3476858  -0.49062958]]
+
+odor_concentrations:
+  Tipo: numpy.ndarray
+  Shape: (50000,)
+  Primeros valores: [2.75648885 2.75554203 2.75425245]
+  Últimos valores: [5.66798774 5.66795861 5.66793816]
+
+======================================================================
+ANÁLISIS DE INFORMACIÓN CRÍTICA
+======================================================================
+
+1. POSICIÓN:
+  positions: shape=(50000, 3)
+    Z inicial: 1.7827
+    Z final: 0.2631
+    Z mínimo: 0.2173
+    Z máximo: 2.1657
+
+2. ORIENTACIÓN:
+  headings: shape=(50000,)
+    Inicial: 0.8365031480789185
+    Final: -0.4906295835971832
+    Inicial (grados): 47.9°
+    Final (grados): -28.1°
+  orientations: shape=(50000, 3)
+    Inicial: [1.5704869e+00 1.6295076e-04 8.3650315e-01]
+    Final: [-0.5419268   1.3476858  -0.49062958]
+
+3. ÁNGULOS DE JOINTS:
+  Encontrados 1 joints
+  Ejemplo (joint_angles): shape=(50000, 42)
+    Valores iniciales: [-3.3683255e-02  3.1633892e-05  8.8008782e-03 -1.1695011e+00
+ -1.0244519e-04]
+    Rango: [-2.3886, 2.3708]
+
+4. ACCIONES MOTORAS:
+  brain_actions: shape=(50000, 2)
+    Media: [0.00085256 0.4146122 ]
+    Std: [0.00845139 0.51000417]
+
+5. INFORMACIÓN DE TIEMPO:
+  Total de frames: 50000
+  dt entre frames: 0.000100s
+  FPS simulación: 10000.0
+
+======================================================================
+FIN DEL ANÁLISIS
+======================================================================

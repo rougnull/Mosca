@@ -1,221 +1,343 @@
-# Documentación Técnica del Proyecto
+# Technical Documentation
 
-Esta carpeta contiene la documentación técnica completa del proyecto Mosca - Navegación Olfatoria en Drosophila.
+**Last Updated**: 2026-03-12
 
-### Reglas Técnicas Obligatorias - Estándares de Arquitectura
+This directory contains technical documentation for the Mosca project.
 
-#### 1. GESTIÓN DE ARCHIVOS Y CARPETAS
+---
 
-**1.1 Estructura de Directorios:**
-- `/tools`: Solo scripts FUNCIONALES con una responsabilidad ÚNICA y CLARA
-  - 1 punto de entrada principal por módulo (ej: `simulate_chemotaxis.py`)
-  - Scripts de debug van a `/tools/debug/` (no en raíz de tools)
-  - No crear carpetas temáticas (ej: "3d_simulations", "analysis_tools")
-  - Máximo 1 archivo por funcionalidad; si necesitas variantes, parámetros en CLI
-  
-- `/outputs/simulations`: ÚNICA carpeta para resultados de simulaciones
-  - Estructura: `/outputs/simulations/{TIPO_SIMULACION}/{TIMESTAMP}/`
-  - Tipos válidos: `chemotaxis_3d/`, `olfactory_2d/`, `behavioral_test/`
-  - No crear subdirectories arbitrarias (ej: `3d_simulations/` está PROHIBIDO)
-  - Incluir metadatos en JSON/YAML con cada simulación
+## Core Documentation
 
-- `/outputs/debug`: ÚNICA carpeta para logs y datos diagnosticos
-  - Solo archivos generados durante debugging/testing
-  - Usar timestamps en nombres: `debug_2026-03-12_14-32.log`
+### 📐 [ARCHITECTURE.md](ARCHITECTURE.md)
+**System Architecture and Design**
 
-- `/data/docs`: Documentación técnica ÚNICAMENTE
-  - Solo `.md` que describen implementaciones y cambios de arquitectura
-  - Prohibido: guías de uso, tutoriales, "cambios de sesión", ejemplos
-  - Mantener lista actualizada de módulos en `IMPLEMENTATION_SUMMARY.md`
+Complete technical overview of the system:
+- High-level pipeline and abstraction levels
+- Core components (OdorField, ImprovedOlfactoryBrain, BrainFly, CPG)
+- Directory structure
+- Key design decisions
+- Performance considerations
+- Biological validation
+- Extension points
 
-**1.2 Gestión de Redundancia:**
-- **PROHIBIDO**: Crear múltiples scripts con el mismo propósito
-- **OBLIGATORIO**: Combinar en 1 archivo principal con opciones CLI
-- Ejemplo CORRECTO:
-  ```python
-  # tools/validate_simulation.py (archivo ÚNICO con todos los tests)
-  if args.test == "angles":          # HABILITABLE
-      test_angle_ranges()
-  elif args.test == "flygym":        # HABILITABLE
-      test_flygym_integration()
-  elif args.test == "all":           # EJECUTAR TODO
-      run_all_tests()
-  ```
-- Ejemplo INCORRECTO:
-  ```
-  tools/test_angles.py               # ❌ PROHIBIDO
-  tools/test_flygym.py               # ❌ PROHIBIDO
-  tools/test_behavior.py             # ❌ PROHIBIDO
-  ```
+**Audience**: Developers, researchers understanding the system
 
-#### 2. NAMINACIÓN Y CATEGORIZACIÓN DE SCRIPTS
+---
 
-**2.1 Convención de Nombres en /tools:**
+### 🔧 [FIXES.md](FIXES.md)
+**Bug Fixes and Solutions**
+
+All issues resolved in the project:
+- Import dependency handling (tqdm, numpy, FlyGym)
+- BrainFly architecture corrections
+- Camera API and optional rendering
+- Best practices and patterns
+- Testing checklist
+
+**Audience**: Developers troubleshooting issues
+
+---
+
+### 📋 [CHANGELOG.md](CHANGELOG.md)
+**Version History**
+
+Complete change history:
+- Version 1.0.0 features and fixes
+- Development history
+- Migration guides
+- Commit categorization
+
+**Audience**: Maintainers, developers tracking changes
+
+---
+
+## Project Standards and Development Rules
+
+### 1. File and Folder Management
+
+#### 1.1 Directory Structure
+
+**`/tools`** - Executable Scripts
+- Only FUNCTIONAL scripts with a SINGLE, CLEAR responsibility
+- 1 main entry point per module (e.g., `simulate_chemotaxis.py`)
+- Debug scripts go to `/tools/debug/` (NOT in root of tools)
+- NO thematic folders (e.g., "3d_simulations", "analysis_tools")
+- Maximum 1 file per functionality; use CLI parameters for variants
+
+**`/outputs/simulations`** - ONLY folder for simulation results
+- Structure: `/outputs/simulations/{SIMULATION_TYPE}/{TIMESTAMP}/`
+- Valid types: `chemotaxis_3d/`, `olfactory_2d/`, `behavioral_test/`, `physics_3d/`
+- NO arbitrary subdirectories (e.g., `3d_simulations/` is FORBIDDEN)
+- Include metadata in JSON/YAML with each simulation
+
+**`/outputs/debug`** - ONLY folder for logs and diagnostic data
+- Only files generated during debugging/testing
+- Use timestamps in names: `debug_2026-03-12_14-32.log`
+
+**`/data/docs`** - Technical Documentation ONLY
+- Only `.md` files describing implementations and architectural changes
+- FORBIDDEN: user guides, tutorials, "session changes", examples
+- Keep updated list of modules in `CHANGELOG.md`
+
+#### 1.2 Redundancy Management
+
+**FORBIDDEN**: Create multiple scripts with the same purpose
+
+**REQUIRED**: Combine into 1 main file with CLI options
+
+**Example CORRECT:**
+```python
+# tools/validate_simulation.py (SINGLE file with all tests)
+if args.test == "angles":          # ENABLE
+    test_angle_ranges()
+elif args.test == "flygym":        # ENABLE
+    test_flygym_integration()
+elif args.test == "all":           # RUN ALL
+    run_all_tests()
 ```
-simulate_*.py         - Scripts de simulación (ejecución principal)
-process_*.py          - Transformación de datos/postprocessing
-analyze_*.py          - Análisis de resultados
-validate_*.py         - Testing y verificación
-render_*.py           - Generación de visualizaciones
-debug_*.py            - Herramientas de diagnóstico (ej: debug_angles.py)
+
+**Example INCORRECT:**
+```
+tools/test_angles.py               # ❌ FORBIDDEN
+tools/test_flygym.py               # ❌ FORBIDDEN
+tools/test_behavior.py             # ❌ FORBIDDEN
 ```
 
-**2.2 Punto de Entrada Único:**
-- Para cada funcionalidad mayor, 1 script principal en `/tools`
-- Variantes se controlan con argumentos CLI (`--option value`)
-- NO copiar/modificar scripts sin cambiar el nombre (ej: `render_final.py`, `render_simple.py` → INCORRECTO)
+### 2. Script Naming and Categorization
 
-#### 3. CONTROL DE VERSIONES Y OUTPUTS
+#### 2.1 Naming Convention in /tools:
 
-**3.1 Outputs de Simulaciones:**
-- Ruta obligatoria: `/outputs/simulations/{TIPO}/{TIMESTAMP}/`
-- Archivos incluídos SIEMPRE:
-  - `metadata.json` - Parámetros, versión código, timestamp
-  - `simulation_data.pkl` - Datos brutos de la simulación
-  - `video.mp4` - Visualización (si aplica)
-  - `summary.txt` - Resumen de ejecución
+```
+simulate_*.py         - Simulation scripts (main execution)
+process_*.py          - Data transformation/postprocessing
+analyze_*.py          - Results analysis
+validate_*.py         - Testing and verification
+render_*.py           - Visualization generation
+debug_*.py            - Diagnostic tools (e.g., debug_angles.py)
+```
 
-**3.2 Ignorar git:**
-- En `.gitignore` NO incluir `/outputs` ni `/data/debug`
-- Todos los resultados deben compartirse en repositorio
-- Ser selectivo: excluir solo archivos temporales (`.tmp`, `*.swp`)
+#### 2.2 Single Entry Point
 
-#### 4. DOCUMENTACIÓN Y CAMBIOS DE CÓDIGO
+- For each major functionality, 1 main script in `/tools`
+- Variants controlled with CLI arguments (`--option value`)
+- DO NOT copy/modify scripts without changing the name (e.g., `render_final.py`, `render_simple.py` → INCORRECT)
 
-**4.1 Documentar Cambios:**
-- CADA cambio en arquitectura → actualizar `/data/docs/SUMMARY_OF_CHANGES.md`
-- CADA nuevo script → describir en `/data/docs/IMPLEMENTATION_SUMMARY.md`
-- Formato requerido:
+### 3. Version Control and Outputs
+
+#### 3.1 Simulation Outputs
+
+**Required path**: `/outputs/simulations/{TYPE}/{TIMESTAMP}/`
+
+**Files ALWAYS included:**
+- `metadata.json` - Parameters, code version, timestamp
+- `simulation_data.pkl` - Raw simulation data
+- `video.mp4` - Visualization (if applicable)
+- `summary.txt` - Execution summary
+
+#### 3.2 Git Ignore
+
+- In `.gitignore` DO NOT include `/outputs` or `/data/debug`
+- All results should be shared in repository
+- Be selective: exclude only temporary files (`.tmp`, `*.swp`)
+
+### 4. Documentation and Code Changes
+
+#### 4.1 Documenting Changes
+
+- EVERY architecture change → update `/data/docs/CHANGELOG.md`
+- EVERY new script → describe in `/data/docs/CHANGELOG.md`
+- Required format:
   ```markdown
-  ## Cambio: [Nombre módulo]
-  - **Archivo**: ruta/archivo.py
-  - **Cambio**: [Descripción técnica]
-  - **Razón**: [Por qué fue necesario]
-  - **Impacto**: [Qué otros módulos afecta]
+  ## Change: [Module Name]
+  - **File**: path/file.py
+  - **Change**: [Technical description]
+  - **Reason**: [Why it was necessary]
+  - **Impact**: [What other modules it affects]
   ```
 
-**4.2 Prohibido:**
-- ❌ Archivos `.md` de "guías de uso" o "tutoriales"
-- ❌ Archivos `.md` documentando "cambios de sesión" del desarrollador
-- ❌ Comentarios en código explicando "qué hizo el AI en sesión X"
-- ✅ Documentar RESULTADOS TÉCNICOS y DECISIONES DE ARQUITECTURA únicamente
+#### 4.2 Forbidden
 
-#### 5. VALIDACIÓN ANTES DE EJECUCIÓN
+- ❌ `.md` files with "user guides" or "tutorials"
+- ❌ `.md` files documenting "developer session changes"
+- ❌ Code comments explaining "what AI did in session X"
+- ✅ Document TECHNICAL RESULTS and ARCHITECTURAL DECISIONS only
 
-**5.1 Pre-ejecución (OBLIGATORIO):**
-- [ ] Verificar ruta de output (siempre `/outputs/simulations/...`)
-- [ ] Verificar no hay carpetas temáticas nuevas
-- [ ] Verificar no hay scripts redundantes en `/tools`
-- [ ] Verificar metadatos + logging en el script
-- [ ] Ejecutar con `--dry-run` o verbose para validar comportamiento
+### 5. Pre/Post Execution Validation
 
-**5.2 Post-ejecución (OBLIGATORIO):**
-- [ ] Inspeccionar outputs generados (metadata.json, video.mp4, etc)
-- [ ] Verificar duración video (> 0.5 segundos para video de movimiento)
-- [ ] Verificar datos (shape, valores, no NaN)
-- [ ] Documentar en `/data/docs/SUMMARY_OF_CHANGES.md` si hay cambios
+#### 5.1 Pre-execution (REQUIRED)
 
-#### 6. BUG TRACKING Y PROBLEMAS CONOCIDOS
+- [ ] Verify output path (always `/outputs/simulations/...`)
+- [ ] Verify no new thematic folders
+- [ ] Verify no redundant scripts in `/tools`
+- [ ] Verify metadata + logging in the script
+- [ ] Execute with `--dry-run` or verbose to validate behavior
 
-**6.1 Renderizado FlyGym (CRÍTICO - 2026-03-12):**
-- Problema: `SingleFlySimulation.render()` solo devuelve frame válido en step 0, después devuelve [None]
-- Causa: Necesita configuración explícita de `render_mode` y cámara
-- Estado: PENDIENTE - Investigar FlyGym version 0.2.7 docs
-- Workaround actual: Duplicar último frame válido para frames posteriores
-- Impacto: Videos no muestran movimiento (duración corta, frames estáticos)
+#### 5.2 Post-execution (REQUIRED)
 
-**6.2 Inestabilidad Física MuJoCo (CRÍTICO - 2026-03-12):**
-- Problema: Aplicar ángulos dinámicos desde pickle causa NaN/Inf en primeros steps
-- Causa: Conflicto entre postura inicial "stretch" y ángulos del pickle
-- Solución: Saltear primeros 10 frames para que simulación se estabilice
-- Impacto: Video generado tiene gaps iniciales
+- [ ] Inspect generated outputs (metadata.json, video.mp4, etc)
+- [ ] Verify video duration (> 0.5 seconds for movement video)
+- [ ] Verify data (shape, values, no NaN)
+- [ ] Document in `/data/docs/CHANGELOG.md` if there are changes
 
-## Archivos de Documentación
+### 6. Known Issues and Bug Tracking
 
-### 📊 EXECUTIVE_SUMMARY.md
-**Resumen ejecutivo de alto nivel**
+See **[FIXES.md](FIXES.md)** for resolved issues.
 
-Contiene:
-- Estado general del proyecto
-- Hallazgos principales del code review
-- Métricas de calidad antes/después
-- Recomendaciones prioritizadas
+**Current Known Issues:**
 
-**Audiencia**: Gestores de proyecto, investigadores principales
+#### 6.1 FlyGym Rendering (RESOLVED - 2026-03-12)
+- **Issue**: `SingleFlySimulation.render()` only returned valid frame at step 0, then returned [None]
+- **Status**: ✅ RESOLVED - Rendering now optional (default: disabled)
+- **Solution**: Separated physics from rendering, fixed Camera API
+- **See**: FIXES.md Issue #4
+
+#### 6.2 MuJoCo Physical Instability (RESOLVED - 2026-03-12)
+- **Issue**: Applying dynamic angles from pickle caused NaN/Inf in first steps
+- **Status**: ✅ RESOLVED - Physics-based simulation from start
+- **Solution**: Use FlyGym physics with CPG controller instead of kinematic approach
+- **See**: CHANGELOG.md v1.0.0
 
 ---
 
-### 🔍 COMPLETE_CODE_REVIEW.md
-**Análisis técnico exhaustivo (762 líneas)**
+## Documentation Organization
 
-Contiene:
-- Análisis completo de arquitectura
-- Identificación de código duplicado
-- Validación de parámetros biológicos
-- Comparación con referencias bibliográficas
-- Discrepancias técnicas
-- Recomendaciones detalladas
+### What Belongs Here
 
-**Audiencia**: Desarrolladores, científicos computacionales
+✅ **Technical Architecture**
+- System design decisions
+- Component interactions
+- Implementation details
+- Performance characteristics
 
----
+✅ **Bug Fixes and Solutions**
+- Root cause analysis
+- Solutions implemented
+- Code patterns established
+- Testing strategies
 
-### 🚀 WORKFLOW_GUIDE.md
-**Guía práctica de uso**
+✅ **Change History**
+- Version releases
+- Feature additions
+- Breaking changes
+- Migration guides
 
-Contiene:
-- Qué script usar para cada tarea
-- Workflows comunes
-- Ejemplos de comandos
-- Troubleshooting
-- Parámetros recomendados
+✅ **Project Standards**
+- File organization rules
+- Naming conventions
+- Development workflow
+- Quality standards
 
-**Audiencia**: Usuarios del sistema, nuevos desarrolladores
+### What Doesn't Belong Here
 
----
+❌ **User Guides/Tutorials**
+- How-to guides for end users
+- Step-by-step tutorials
+- Usage examples (these go in main README.md if needed)
 
-### 📝 SUMMARY_OF_CHANGES.md
-**Historial de cambios y mejoras**
+❌ **Session Notes**
+- Temporary analysis files
+- Debug session logs
+- Work in progress notes
 
-Contiene:
-- Cambios implementados en el code review
-- Impacto de cada cambio
-- Archivos modificados/eliminados
-- Próximos pasos recomendados
-
-**Audiencia**: Equipo de desarrollo, mantenedores
-
----
-
-## Orden de Lectura Recomendado
-
-### Para nuevos usuarios:
-1. **WORKFLOW_GUIDE.md** - Aprende a usar el sistema
-2. **EXECUTIVE_SUMMARY.md** - Entiende el proyecto globalmente
-3. **README.md** (en raíz) - Documentación biológica y técnica
-
-### Para desarrolladores:
-1. **EXECUTIVE_SUMMARY.md** - Contexto general
-2. **COMPLETE_CODE_REVIEW.md** - Análisis técnico detallado
-3. **SUMMARY_OF_CHANGES.md** - Qué se cambió y por qué
-4. **WORKFLOW_GUIDE.md** - Cómo ejecutar scripts
-
-### Para científicos/investigadores:
-1. **README.md** (en raíz) - Fundamentos biológicos
-2. **EXECUTIVE_SUMMARY.md** - Hallazgos principales
-3. **COMPLETE_CODE_REVIEW.md (Sección 7)** - Validación biológica
+❌ **Redundant Information**
+- Duplicate fix descriptions
+- Overlapping architecture docs
+- Multiple versions of same content
 
 ---
 
-## Actualización
+## Quick Reference
 
-Esta documentación fue generada el **2026-03-12** como parte de un code review exhaustivo.
+### For New Developers
 
-Para mantenerla actualizada:
-- Actualizar **SUMMARY_OF_CHANGES.md** cuando se implementen mejoras
-- Revisar **WORKFLOW_GUIDE.md** si se agregan nuevos scripts
-- Actualizar **EXECUTIVE_SUMMARY.md** periódicamente con nuevos hallazgos
+1. **Start with** `../README.md` - Project overview and quick start
+2. **Then read** `ARCHITECTURE.md` - Understand system design
+3. **Reference** `FIXES.md` - Common issues and solutions
+4. **Track changes** `CHANGELOG.md` - Recent updates
+5. **Follow standards** - This document (project rules)
+
+### For Maintenance
+
+- **Bugs/Issues** → Document in `FIXES.md`
+- **New Features** → Update `ARCHITECTURE.md` and `CHANGELOG.md`
+- **Breaking Changes** → Update `CHANGELOG.md` with migration guide
+- **Design Decisions** → Document in `ARCHITECTURE.md`
+- **New Scripts** → Follow naming conventions, document in `CHANGELOG.md`
+
+### For Research
+
+- **Biological Parameters** → See `ARCHITECTURE.md` section "Biological Validation"
+- **References** → See `../README.md` section "References"
+- **Validation Data** → See `ARCHITECTURE.md` section "Parameters Validated"
 
 ---
 
-**Última actualización**: 2026-03-12
+## Documentation Standards
+
+### File Organization
+
+```
+data/docs/
+├── ARCHITECTURE.md       # System design (technical)
+├── FIXES.md             # Bug fixes and solutions
+├── CHANGELOG.md         # Version history
+└── README.md            # This file (index + standards)
+```
+
+### Writing Style
+
+- **Concise**: Focus on facts and technical details
+- **Structured**: Use clear hierarchies and sections
+- **Code-first**: Show code examples, not just descriptions
+- **Cross-referenced**: Link between related documents
+
+### Maintenance
+
+- **Update on change**: Keep docs synchronized with code
+- **Remove obsolete**: Delete outdated information
+- **Consolidate**: Merge related documents
+- **Version**: Date all major updates
+
+---
+
+## Historical Documentation (Archived)
+
+The following files were consolidated into the current structure:
+
+**Merged into FIXES.md:**
+- `COMPLETE_FIX_SUMMARY.md`
+- `FIX_CAMERA_OPTIONAL_RENDERING.md`
+- `FIX_BRAINFLY_ARCHITECTURE.md`
+- `FIX_TQDM_OPTIONAL.md`
+- `IMPORT_ERRORS_FIXED.md`
+
+**Merged into ARCHITECTURE.md:**
+- `ARCHITECTURE_ANALYSIS.md`
+- `PHYSICS_SIMULATION_IMPLEMENTATION.md`
+- `RENDERING_ARCHITECTURE.md`
+
+**Merged into CHANGELOG.md:**
+- `SUMMARY_OF_CHANGES.md`
+- `IMPLEMENTATION_SUMMARY.md`
+- `IMPLEMENTATION_3D_FIXES.md`
+
+**Removed (redundant or user-facing):**
+- `WORKFLOW_GUIDE.md` (user guide content moved to main README)
+- `EXECUTIVE_SUMMARY.md` (high-level content in main README)
+- `COMPLETE_CODE_REVIEW.md` (analysis findings integrated)
+- `DIAGNOSTIC_SUMMARY.md` (fixes documented in FIXES.md)
+- `DIAGNOSTIC_SIMULATION_ISSUES.md` (fixes documented in FIXES.md)
+- `SUMMARY_ANALYSIS.md` (content integrated)
+
+---
+
+## Related Files
+
+- **`../README.md`** - Main project documentation
+- **`../notebooks/`** - Jupyter notebooks for interactive exploration
+- **`../debug/`** - Debug logs and temporary analysis
+
+---
+
+**Maintained by**: Project maintainers
+**Documentation version**: 1.0.0
