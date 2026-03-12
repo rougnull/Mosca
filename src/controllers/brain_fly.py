@@ -127,7 +127,8 @@ class BrainFly(Fly):
         """
         try:
             # Opción 1: SingleFlySimulation structure: obs["fly"] = (pos, quat, euler, ...)
-            if "fly" in obs and isinstance(obs["fly"], (tuple, list)) and len(obs["fly"]) >= 1:
+            # Note: FlyGym may return this as ndarray, tuple, or list
+            if "fly" in obs and isinstance(obs["fly"], (tuple, list, np.ndarray)) and len(obs["fly"]) >= 1:
                 # obs["fly"][0] = position array [x, y, z]
                 position = obs["fly"][0]
                 if hasattr(position, '__len__') and len(position) >= 3:
@@ -163,7 +164,8 @@ class BrainFly(Fly):
         """
         try:
             # Opción 1: SingleFlySimulation structure: obs["fly"] = (pos, quat, euler, ...)
-            if "fly" in obs and isinstance(obs["fly"], (tuple, list)) and len(obs["fly"]) >= 3:
+            # Note: FlyGym may return this as ndarray, tuple, or list
+            if "fly" in obs and isinstance(obs["fly"], (tuple, list, np.ndarray)) and len(obs["fly"]) >= 3:
                 # obs["fly"][2] = orientation as Euler angles [roll, pitch, yaw]
                 orientation = obs["fly"][2]
                 if hasattr(orientation, '__len__') and len(orientation) >= 3:
@@ -256,7 +258,7 @@ class BrainFly(Fly):
             print(f"  Obs type: {type(obs)}")
             if "fly" in obs:
                 print(f"  obs['fly'] type: {type(obs['fly'])}")
-                if isinstance(obs["fly"], (tuple, list)):
+                if isinstance(obs["fly"], (tuple, list, np.ndarray)):
                     print(f"  obs['fly'] length: {len(obs['fly'])}")
                     if len(obs['fly']) >= 3:
                         print(f"  obs['fly'][0] (pos): {obs['fly'][0]}")
