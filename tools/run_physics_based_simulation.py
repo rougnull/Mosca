@@ -87,7 +87,8 @@ class PhysicsBasedOlfactorySimulation:
         sim_duration=5.0,
         timestep=1e-4,
         render_fps=30,
-        seed=42
+        seed=42,
+        enable_rendering=False
     ):
         """
         Initialize physics-based simulation.
@@ -110,6 +111,9 @@ class PhysicsBasedOlfactorySimulation:
             Video frame rate (Hz)
         seed : int
             Random seed
+        enable_rendering : bool
+            Whether to enable video rendering (default: False)
+            Set to False to run simulation without camera (faster)
         """
         if not HAS_FLYGYM:
             raise RuntimeError("FlyGym is required but not installed")
@@ -120,6 +124,7 @@ class PhysicsBasedOlfactorySimulation:
         self.timestep = timestep
         self.render_fps = render_fps
         self.render_interval = int(1.0 / (render_fps * timestep))
+        self.enable_rendering = enable_rendering
 
         # Create odor field
         self.odor_field = OdorField(
@@ -148,16 +153,33 @@ class PhysicsBasedOlfactorySimulation:
         )
 
         # Create simulation with physics
-        self.sim = SingleFlySimulation(
-            fly=self.fly,
-            arena=FlatTerrain(),
-            timestep=timestep,
-            cameras=[Camera(
-                name="cam_front",
-                play_speed=0.1,
-                window_size=(1920, 1080),
-            )]
-        )
+        # Note: Camera is optional - only add if rendering is enabled
+        sim_kwargs = {
+            "fly": self.fly,
+            "arena": FlatTerrain(),
+            "timestep": timestep,
+        }
+
+        if enable_rendering:
+            # Camera configuration for FlyGym
+            # Using fly-attached camera as per FlyGym documentation
+            try:
+                camera = Camera(
+                    fly=self.fly,
+                    camera_id="Animat/camera_left",  # Standard FlyGym camera mount
+                    play_speed=0.1,
+                    fps=render_fps,
+                )
+                sim_kwargs["cameras"] = [camera]
+                print("[INFO] Rendering enabled with camera")
+            except Exception as e:
+                print(f"[WARNING] Could not initialize camera: {e}")
+                print("[INFO] Continuing without camera (rendering disabled)")
+                self.enable_rendering = False
+        else:
+            print("[INFO] Rendering disabled - running physics simulation only")
+
+        self.sim = SingleFlySimulation(**sim_kwargs)
 
         # Storage for trajectory data
         self.trajectory_data = {
@@ -246,7 +268,7 @@ class PhysicsBasedOlfactorySimulation:
         Parameters
         ----------
         save_video : bool
-            Whether to save video frames
+            Whether to save video frames (only works if rendering is enabled)
 
         Returns
         -------
@@ -258,6 +280,9 @@ class PhysicsBasedOlfactorySimulation:
         n_steps = int(self.sim_duration / self.timestep)
         video_frames = []
 
+        # Only save video if rendering is enabled
+        should_render = save_video and self.enable_rendering
+
         if HAS_TQDM:
             # Use tqdm progress bar if available
             with tqdm(total=n_steps, desc="  Simulating") as pbar:
@@ -267,9 +292,17 @@ class PhysicsBasedOlfactorySimulation:
                         break
 
                     # Render frame if needed
-                    if save_video and (step_idx % self.render_interval == 0):
-                        frame = self.sim.render()[0]  # Get first camera
-                        video_frames.append(frame)
+                    if should_render and (step_idx % self.render_interval == 0):
+                        try:
+                            rendered = self.sim.render()
+                            if rendered and len(rendered) > 0:
+                                frame = rendered[0]  # Get first camera
+                                if frame is not None:
+                                    video_frames.append(frame)
+                        except Exception as e:
+                            if step_idx == 0:  # Only warn on first failure
+                                print(f"  [!] Rendering failed: {e}")
+                                should_render = False  # Disable further rendering attempts
 
                     pbar.update(1)
         else:
@@ -282,9 +315,17 @@ class PhysicsBasedOlfactorySimulation:
                     break
 
                 # Render frame if needed
-                if save_video and (step_idx % self.render_interval == 0):
-                    frame = self.sim.render()[0]  # Get first camera
-                    video_frames.append(frame)
+                if should_render and (step_idx % self.render_interval == 0):
+                    try:
+                        rendered = self.sim.render()
+                        if rendered and len(rendered) > 0:
+                            frame = rendered[0]  # Get first camera
+                            if frame is not None:
+                                video_frames.append(frame)
+                    except Exception as e:
+                        if step_idx == 0:  # Only warn on first failure
+                            print(f"  [!] Rendering failed: {e}")
+                            should_render = False  # Disable further rendering attempts
 
                 # Print progress updates
                 if step_idx % progress_interval == 0 or step_idx == n_steps - 1:
@@ -294,9 +335,11 @@ class PhysicsBasedOlfactorySimulation:
         print("  [OK] Simulation completed")
 
         # Save video if frames were collected
-        if save_video and len(video_frames) > 0:
+        if should_render and len(video_frames) > 0:
             self.video_frames = video_frames
             print(f"  [OK] Collected {len(video_frames)} video frames")
+        elif save_video and not self.enable_rendering:
+            print("  [INFO] Video not saved - rendering was disabled")
 
         return True
 
@@ -368,8 +411,10 @@ def main():
                        help="Simulation duration in seconds (default: 5)")
     parser.add_argument("--seed", type=int, default=42,
                        help="Random seed (default: 42)")
+    parser.add_argument("--enable-render", action="store_true",
+                       help="Enable video rendering with camera (slower, may cause errors if camera setup fails)")
     parser.add_argument("--no-video", action="store_true",
-                       help="Skip video recording")
+                       help="Skip video recording (only applies if --enable-render is used)")
     args = parser.parse_args()
 
     if not HAS_FLYGYM:
@@ -390,10 +435,13 @@ def main():
         sim_duration=args.duration,
         timestep=1e-4,  # 0.1ms physics timestep
         render_fps=30,
-        seed=args.seed
+        seed=args.seed,
+        enable_rendering=args.enable_render
     )
 
-    if not sim.run(save_video=not args.no_video):
+    # Only try to save video if rendering is enabled
+    save_video = args.enable_render and not args.no_video
+    if not sim.run(save_video=save_video):
         print("\n[X] Simulation failed")
         return False
 
