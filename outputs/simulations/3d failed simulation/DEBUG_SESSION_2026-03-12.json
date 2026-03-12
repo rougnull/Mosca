@@ -4,8 +4,8 @@
     "problems_identified": {
         "problem_1": {
             "title": "Video duración ~0 segundos (FIX PARCIAL)",
-            "cause": "FlyGym 0.2.7 render() solo devuelve frame en el step 0"""  solo, después devuelve [None
-            ]","root_cause": "SingleFlySimulation no renderiza en cada step por defecto (tiene render_interval)",
+            "cause": "FlyGym 0.2.7 render() solo devuelve frame en el step 0 solo, después devuelve [None]",
+            "root_cause": "SingleFlySimulation no renderiza en cada step por defecto (tiene render_interval)",
             "solution_implemented": "ContinuousRenderingSimulation wrapper que reutiliza último frame válido",
             "status": "PARCIALMENTE RESUELTO - Frames ahora se capturan (290/300), pero video sigue pequeño"
         },
