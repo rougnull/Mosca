@@ -110,34 +110,151 @@ class BrainFly(Fly):
         
         return self._odor_concentration
     
+    def _extract_head_position(self, obs: Dict[str, Any]) -> np.ndarray:
+        """
+        Extraer posición de la cabeza de las observaciones.
+
+        Parameters
+        ----------
+        obs : Dict[str, Any]
+            Observaciones de FlyGym.
+
+        Returns
+        -------
+        np.ndarray
+            Posición [x, y, z] en mm.
+        """
+        try:
+            if "head_pos" in obs:
+                return np.array(obs["head_pos"])
+            elif "Nuro" in obs and "head_pos" in obs["Nuro"]:
+                return np.array(obs["Nuro"]["head_pos"])
+            elif "fly" in obs and "position" in obs["fly"]:
+                return np.array(obs["fly"]["position"])
+            else:
+                # Fallback: posición del cuerpo o centro de masa
+                return obs.get("body_positions", {}).get("head", np.zeros(3))
+        except Exception as e:
+            print(f"Warning: Error extrayendo posición de cabeza: {e}")
+            return np.zeros(3)
+
+    def _extract_heading(self, obs: Dict[str, Any]) -> float:
+        """
+        Extraer orientación (yaw/heading) de la mosca desde observaciones.
+
+        Parameters
+        ----------
+        obs : Dict[str, Any]
+            Observaciones de FlyGym.
+
+        Returns
+        -------
+        float
+            Heading en radianes (ángulo en plano XY).
+        """
+        try:
+            # Opción 1: Si hay quaternion de orientación
+            if "fly_orientation" in obs:
+                quat = obs["fly_orientation"]
+                return self._quaternion_to_yaw(quat)
+
+            # Opción 2: Si FlyGym proporciona orientación directamente
+            elif "orientation" in obs:
+                # Puede ser [roll, pitch, yaw] o quaternion
+                orientation = obs["orientation"]
+                if len(orientation) == 4:  # Quaternion
+                    return self._quaternion_to_yaw(orientation)
+                elif len(orientation) >= 3:  # Euler angles
+                    return float(orientation[2])  # yaw es el tercer elemento
+
+            # Opción 3: Calcular desde velocidad si está disponible
+            elif "fly_velocity" in obs:
+                vel = obs["fly_velocity"]
+                if len(vel) >= 2 and (abs(vel[0]) > 1e-6 or abs(vel[1]) > 1e-6):
+                    return np.arctan2(vel[1], vel[0])
+
+            # Opción 4: Usar orientación almacenada o default
+            if hasattr(self, '_last_heading'):
+                return self._last_heading
+            else:
+                return 0.0
+
+        except Exception as e:
+            print(f"Warning: Error extrayendo heading: {e}")
+            return getattr(self, '_last_heading', 0.0)
+
+    def _quaternion_to_yaw(self, quat: np.ndarray) -> float:
+        """
+        Convertir quaternion a ángulo yaw (rotación en plano XY).
+
+        Parameters
+        ----------
+        quat : np.ndarray
+            Quaternion [w, x, y, z] o [x, y, z, w] dependiendo de convención.
+
+        Returns
+        -------
+        float
+            Ángulo yaw en radianes.
+        """
+        try:
+            # Intentar ambas convenciones
+            if len(quat) == 4:
+                # Convención [w, x, y, z]
+                w, x, y, z = quat
+                # Fórmula: yaw = atan2(2(wz + xy), 1 - 2(y² + z²))
+                yaw = np.arctan2(2.0 * (w * z + x * y),
+                                 1.0 - 2.0 * (y * y + z * z))
+                return float(yaw)
+        except Exception:
+            pass
+
+        return 0.0
+
     def step(self, obs: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
         Ejecutar un paso sensoriomotor: leer olor → cerebro → acción.
-        
+
         Este método se puede llamar externamente o integrarse en el bucle
         de simulación principal.
-        
+
         Parameters
         ----------
         obs : Dict[str, Any]
             Observaciones del entorno.
-        
+
         Returns
         -------
         Dict[str, Any]
             Acciones para pasarle a Simulation.step()
         """
         self._last_obs = obs
-        
-        # 1. Leer entrada sensorial
-        odor = self.get_sensory_input(obs)
-        
-        # 2. Procesar con cerebro
-        motor_signal = self.brain.step(odor)  # [forward, turn]
-        
+
+        # Verificar si el cerebro es ImprovedOlfactoryBrain (requiere heading)
+        brain_class_name = self.brain.__class__.__name__
+
+        if brain_class_name == "ImprovedOlfactoryBrain":
+            # Usar versión mejorada con heading
+            # 1. Extraer posición de la cabeza
+            head_pos = self._extract_head_position(obs)
+
+            # 2. Extraer orientación (heading)
+            heading = self._extract_heading(obs)
+            self._last_heading = heading  # Guardar para próximo step
+
+            # 3. Procesar con cerebro mejorado (recibe campo completo, posición y heading)
+            motor_signal = self.brain.step(self.odor_field, head_pos, heading)
+        else:
+            # Usar versión legacy (solo recibe concentración escalar)
+            # 1. Leer entrada sensorial
+            odor = self.get_sensory_input(obs)
+
+            # 2. Procesar con cerebro
+            motor_signal = self.brain.step(odor)  # [forward, turn]
+
         # 3. Convertir señal cerebral a acciones motoras
         action = self._motor_signal_to_action(motor_signal)
-        
+
         return action
     
     def _motor_signal_to_action(self, motor_signal: np.ndarray) -> Dict[str, Any]:
