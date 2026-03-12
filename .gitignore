@@ -39,15 +39,3 @@ env/
 # OS
 .DS_Store
 Thumbs.db
-
-# Outputs (keep structure but ignore most generated files)
-outputs/**/simulation.mp4
-outputs/**/trajectory.csv
-outputs/**/*.png
-outputs/**/*.json
-!outputs/.gitkeep
-
-# Debug files
-data/debug/**/*.png
-data/debug/**/*.csv
-data/debug/**/*.json
