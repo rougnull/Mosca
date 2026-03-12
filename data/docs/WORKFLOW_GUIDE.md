@@ -6,15 +6,50 @@ Esta guía clarifica qué scripts usar para cada tarea común.
 
 ## 🚀 Simulaciones
 
-### Ejecutar una simulación individual
+### NUEVO: Pipeline completo (Simulación → Validación → Renderizado 3D)
+
+**Recomendado para la mayoría de casos:**
+
 ```bash
-python tools/run_simulation.py \
-    --mode gradient \
-    --sigma 15.0 \
-    --threshold 0.1 \
-    --duration 10
+# Simulación completa: corre simulación, valida, y renderiza 3D (si exitosa)
+python tools/run_simulation_complete.py \
+    --duration 10 \
+    --brain improved \
+    --sim-type kinematic
 ```
-**Genera**: `outputs/YYYY-MM-DD_HH-MM-SS/` con trajectory.csv, config.json, simulation.mp4
+
+**Caracte rísticas**:
+- ✓ Ejecuta simulación y guarda trajectory.csv
+- ✓ Valida que la mosca se movió correctamente
+- ✓ Renderiza 3D SOLO si validación es exitosa
+- ✓ Crea timestamped folders automáticamente
+- ✓ Genera validation.json con detalles
+
+**Genera**: `outputs/simulations/YYYY-MM-DD_HH-MM-SS/` con:
+- `trajectory.csv` - Datos crudos de trayectoria
+- `config.json` - Parámetros de simulación
+- `validation.json` - Resultado de validación
+- `fly_3d_animation.mp4` - Video 3D (si validación OK)
+
+### Alternativa: Ejecutar componentes por separado (desarrollo)
+
+**Para desarrollo/debugging, ejecutar cada paso independientemente:**
+
+```bash
+# Paso 1: Solo simulación (guarda datos): 
+python tools/simulation/simulation_runner.py \
+    --duration 10 \
+    --sim-type kinematic
+
+# Paso 2: Validar después
+python tools/simulation/simulation_validator.py \
+    outputs/simulations/2026-03-12_14-35-22/trajectory.csv
+
+# Paso 3: Renderizar si validación OK
+python tools/simulation/3d_renderer.py \
+    outputs/simulations/2026-03-12_14-35-22/ \
+    --quality high
+```
 
 ### Ejecutar batch de experimentos
 ```bash

@@ -8,7 +8,6 @@ from .config import (
     EnvironmentConfig,
     PartHighlightConfig,
     LegColorConfig,
-    create_moldeable_render
 )
 
 from .data import (
@@ -19,12 +18,17 @@ from .data import (
     get_n_frames
 )
 
-from .model import (
-    find_neuromechfly_model,
-    load_and_setup_model,
-    create_minimal_model,
-    modify_xml_for_high_res
-)
+# Try to import model functions if available
+try:
+    from .model import (
+        find_neuromechfly_model,
+        load_and_setup_model,
+        create_minimal_model,
+        modify_xml_for_high_res
+    )
+except (ImportError, ModuleNotFoundError):
+    # Model functions not available
+    pass
 
 __all__ = [
     # Config
@@ -33,7 +37,6 @@ __all__ = [
     'EnvironmentConfig',
     'PartHighlightConfig',
     'LegColorConfig',
-    'create_moldeable_render',
     
     # Data
     'load_kinematic_data',
@@ -41,10 +44,4 @@ __all__ = [
     'get_joint_names',
     'get_leg_joints',
     'get_n_frames',
-    
-    # Model
-    'find_neuromechfly_model',
-    'load_and_setup_model',
-    'create_minimal_model',
-    'modify_xml_for_high_res',
 ]

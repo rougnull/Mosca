@@ -9,13 +9,14 @@
 ## 1. RESUMEN EJECUTIVO
 
 ### Estado General
-El proyecto implementa un sistema de navegación quimiotáctica para *Drosophila melanogaster* usando FlyGym. La arquitectura core (src/) es **sólida y bien diseñada**, pero el directorio tools/ tiene **significativa redundancia** (~30% de scripts duplicados o obsoletos).
+El proyecto implementa un sistema de navegación quimiotáctica para *Drosophila melanogaster* usando FlyGym. La arquitectura core (src/) es **sólida y bien diseñada**, con arquitectura modular **consolidada y limpia**.
 
 ### Hallazgos Críticos
+- ✅ **Limpieza completada** (2026-03-12): Eliminados 15 scripts obsoletos en tools/, consolidada arquitectura modular
+- ✅ **Arquitectura reorganizada**: `/src` como ubicación principal modular, `/tools` con solo 4 scripts esenciales
 - ✅ **Bug crítico resuelto** (2026-03-12): Temporal gradient fix en ImprovedOlfactoryBrain
-- ⚠️ **6 scripts redundantes** en tools/ que pueden eliminarse
+- ⚠️ **Renderizado 3D**: Necesita refactoring modular para mejor mantenibilidad
 - ⚠️ **Parámetros biológicos**: Algunos valores no coinciden con especificaciones del README
-- ⚠️ **Organización de outputs**: Múltiples estructuras de carpetas inconsistentes
 - ⚠️ **Falta validación**: Comparación con datos experimentales reales de Drosophila
 
 ---
@@ -44,50 +45,54 @@ src/
 
 **Evaluación**: Arquitectura modular clara. Separación sensorial-cognitivo-motor bien implementada.
 
-### 2.2 Directorio Tools/ - ⚠️ NECESITA LIMPIEZA
+### 2.2 Directorio Tools/ - ✅ LIMPIADO Y CONSOLIDADO
 
-**Total**: 25 scripts, 5,243 líneas de código
+**Total (ACTUALIZADO)**: 4 scripts, ~41 líneas de código
+**Eliminados**: 15 scripts obsoletos, ~3 carpetas auxiliares (analysis/, utils/, visualization/)
 
-#### Scripts Principales (mantener):
-1. ✅ **run_simulation.py** (371 líneas) - Script principal, bien estructurado
-2. ✅ **batch_experiments.py** (150 líneas) - Batch runner
-3. ✅ **analyze_experiments.py** (275 líneas) - Genera HTML reports
-4. ✅ **render_simulation_video.py** (288 líneas) - Rendering de videos
-5. ✅ **validate_movement_control.py** (314 líneas) - Test suite
-6. ✅ **diagnose_critical.py** (97 líneas) - Diagnóstico esencial
+#### Scripts Principales (MANTENIDOS):
+1. ✅ **run_complete_3d_simulation.py** (14.252 bytes) - Entry point principal consolidado
+   - Workflow completo: simulación → validación → persistencia → renderizado
+   - Importa módulos desde `/src` (arquitectura consolidada)
+   - Requiere: Python 3.8+, FlyGym 0.2.7, MuJoCo
 
-#### Scripts Redundantes (eliminar/fusionar):
-1. ❌ **tools/simulation/run_improved_simulation.py** (304 líneas)
-   - **Razón**: Duplica funcionalidad de run_simulation.py
-   - **Acción**: Eliminar - usar run_simulation.py con flag --controller improved
+2. ✅ **validate_modular_architecture.py** (3.744 bytes) - Validación de módulos
+   - Verifica que todos los componentes de `/src` cargan correctamente
+   - Esencial para CI/CD y debugging
 
-2. ❌ **tools/simulation/run_bilateral_simulation.py** (253 líneas)
-   - **Razón**: Bilateral sensing ya está en ImprovedOlfactoryBrain
-   - **Acción**: Eliminar - configuración redundante
+3. ✅ **render_simulation_video.py** (10.888 bytes) - Renderizado de video MP4
+   - Convierte datos de trayectoria guardados a video 3D MuJoCo
+   - Función: `render_simulation_video(trajectory_file, output_file)`
+   - Complementario al renderizado integrado en run_complete_3d_simulation.py
 
-3. ⚠️ **analyze_simulations.py** (181 líneas) vs **analyze_experiments.py** (275 líneas)
-   - **Razón**: Overlapping functionality
-   - **Acción**: Mantener analyze_experiments (más completo), marcar el otro como deprecated
+4. ✅ **validate_movement_control.py** (12.815 bytes) - Test suite de movimiento
+   - Valida que el control de movimiento funciona correctamente
+   - Verifica outputs de los controladores
 
-4. ⚠️ **tools/diagnostics/debug_odor_reception.py** (256 líneas)
-   - **Razón**: Overlap con diagnose_critical.py
-   - **Acción**: Fusionar funcionalidad en diagnose_critical.py
+#### Scripts Eliminados (RAZONES):
+1. ❌ **analyze_experiments.py** - Redundante con análisis en run_complete_3d_simulation.py
+2. ❌ **analyze_parameters.py** - No documentado en arquitectura actual
+3. ❌ **analyze_simulations.py** - Análisis inline en run_complete_3d_simulation.py
+4. ❌ **batch_experiments.py** - Reemplazado por flags en run_complete_3d_simulation.py
+5. ❌ **diagnose_*.py** (3 archivos) - Scripts antiguos de diagnóstico, no integrados
+6. ❌ **example_minimal.py**, **run_olfactory_example.py** - Ejemplos obsoletos
+7. ❌ **find_working_params.py** - Búsqueda de parámetros no documentada
+8. ❌ **integrate_mujoco_3d.py** - Funcionalidad integrada en run_complete_3d_simulation.py
+9. ❌ **prepare_mujoco_data.py** - Preparación inline en modelos de /src
+10. ❌ **render_saved_trajectory.py** - Funcionalidad parcial en render_simulation_video.py
+11. ❌ **simple_olfactory_sim.py** - Simulación antigua, reemplazada por /src/simulation
+12. ❌ **validate_visual.py** - Validación visual no integrada
 
-5. ⚠️ **generate_analysis_report.py** (316 líneas) vs **tools/analysis/generate_improved_report.py** (450 líneas)
-   - **Razón**: El "improved" sugiere que el original es obsoleto
-   - **Acción**: Eliminar el original, usar solo la versión mejorada
+#### Carpetas Eliminadas (SUBDIRECTORIOS):
+- ❌ **analysis/** - Scripts de análisis desactualizados
+- ❌ **utils/** - Utilidades no documentadas
+- ❌ **visualization/** - Visualización antigua (reemplazada por render/)
 
-6. ⚠️ **run_working_simulations.py** (275 líneas)
-   - **Razón**: Puede reemplazarse con batch_experiments.py + config presets
-   - **Acción**: Evaluar si es realmente necesario
-
-#### Scripts Especializados (mantener pero documentar):
-- **run_mujoco_simulation.py** (280 líneas) - MuJoCo específico
-- **integrate_mujoco_3d.py** (291 líneas) - Integración 3D
-- **prepare_mujoco_data.py** (192 líneas) - Preparación de datos
-- **simple_olfactory_sim.py** (150 líneas) - Simulación sin física
-- **find_working_params.py** (172 líneas) - Búsqueda de parámetros
-- **analyze_parameters.py** (288 líneas) - Análisis de sensibilidad
+**Resultado**: Arquitectura `/tools` ahora es LIMPIA y enfocada únicamente en Scripts de utilidad para:
+- Ejecución completa de workflow (run_complete_3d_simulation.py)
+- Validación de módulos (validate_modular_architecture.py)  
+- Renderizado de trayectorias guardadas (render_simulation_video.py)
+- Pruebas de movimiento (validate_movement_control.py)
 
 ---
 
@@ -200,6 +205,56 @@ forward = self.forward_scale * np.clip(conc_change * 10, 0, 1)
 **Nota**: El multiplicador "× 10" es empírico. No hay justificación biológica clara para este valor.
 
 **Recomendación**: Documentar por qué 10× es el valor óptimo, o hacer parameter sweep para validar.
+
+---
+
+### 3.4 Refactoring: Renderizado 3D Modular - ✅ IMPLEMENTADO
+
+**Problema anterior** (v1.0):
+- Clase monolítica `MuJoCoRenderer` que hacía todo (cargar, setup, renderizar, guardar)
+- Acoplamiento fuerte → difícil de testear, depurar, mantener
+
+**Solución implementada** (v2.0 - 2026-03-12):
+Arquitectura modular con 5 componentes independientes:
+
+```
+DataLoader ────push──→ joint_angles
+                              ↓
+EnvironmentSetup ─→ FlyGym Simulation
+                              ↓
+FrameRenderer ────combine──→ frames
+                              ↓
+VideoWriter ──────save──→ MP4 file
+                   ↑
+        (orchestrated by RenderingPipeline)
+```
+
+**Módulos creados**:
+1. ✅ `data_loader.py` - Carga datos cinemáticos (.pkl)
+2. ✅ `environment_setup.py` - Configura FlyGym
+3. ✅ `frame_renderer.py` - Renderiza frames
+4. ✅ `video_writer.py` - Guarda MP4
+5. ✅ `rendering_pipeline.py` - Orquestador
+6. ✅ `RENDERING_ARCHITECTURE.md` - Documentación completa
+
+**Ventajas**:
+- ✓ Cada módulo es independiente (se puede usar por separado)
+- ✓ Mejor manejo de errores (por módulo)
+- ✓ Más fácil de testear
+- ✓ Más fácil de extender (agregar nuevas cámaras, formatos, etc.)
+- ✓ Reutilizable en otros proyectos
+
+**Compatibilidad**:
+- ✓ `MuJoCoRenderer` legacy se mantiene en `src/rendering/mujoco_renderer.py`
+- ✓ Importable desde `src.rendering` para backward compatibility
+- ⭐ Se recomienda migrar a `RenderingPipeline` para nuevos proyectos
+
+**Documentación**:
+- Ver `src/rendering/RENDERING_ARCHITECTURE.md` para:
+  - Flujo modular detallado
+  - Casos de uso con ejemplos
+  - Manejo de errores
+  - Próximos pasos de desarrollo
 
 ---
 

@@ -119,9 +119,33 @@ Pero esto **NO está implementado**.
 
 ---
 
-## 🔧 CAMBIOS IMPLEMENTADOS
+## 🔧 CAMBIOS IMPLEMENTADOS (Sesión 2.1 - Reorganización Modular)
 
-### Código
+### Reorganización de Rendering
+1. ✅ **Modernización de arquitectura de rendering**:
+   - Estructura anterior (plana): 7 archivos en `src/rendering/`
+   - Estructura nueva (modular):
+     - `src/rendering/data/` - Carga y preparación de datos (DataLoader, EnvironmentSetup)
+     - `src/rendering/core/` - Componentes principales (FrameRenderer, VideoWriter, MuJoCoRenderer)
+     - `src/rendering/pipeline/` - Orquestación (RenderingPipeline)
+   - Beneficio: Claridad funcional, mantenimiento más fácil, testing independiente
+
+2. ✅ **Limpieza de /tools**:
+   - Eliminado: `tools/validate_modular_architecture.py` (redundante, -300 líneas)
+   - Mantenidos: `tools/__init__.py`, `tools/run_complete_3d_simulation.py`
+   - Resultado: Solo scripts esenciales en /tools
+
+3. ✅ **Reorganización de documentación**:
+   - Movido: `src/rendering/RENDERING_ARCHITECTURE.md` → `data/docs/RENDERING_ARCHITECTURE.md`
+   - Eliminado: `CAMBIOS_SESION_2026-03-12.md` (violaba reglas de documentación)
+   - Aplicada regla: "Solo documentación técnica relevante en `data/docs/`"
+
+4. ✅ **Actualización de imports**:
+   - `src/rendering/__init__.py` actualizado para nuevos imports desde submódulos
+   - Mantiene compatibilidad hacia atrás con imports directos
+   - Fallbacks implementados para robustez
+
+### Código (Anterior - Sesión 1)
 1. ✅ **Parámetros biológicos corregidos** en `improved_olfactory_brain.py`
 2. ✅ **3 scripts redundantes eliminados** (-873 líneas)
 3. ✅ **Warning de deprecación** agregado a `analyze_simulations.py`
@@ -129,13 +153,16 @@ Pero esto **NO está implementado**.
 ### Documentación
 4. ✅ **COMPLETE_CODE_REVIEW.md** (762 líneas) - Análisis exhaustivo
 5. ✅ **WORKFLOW_GUIDE.md** (220 líneas) - Guía práctica de uso
-6. ✅ **SUMMARY_OF_CHANGES.md** - Resumen de cambios
-7. ✅ **README.md actualizado** - Bibliografía corregida
+6. ✅ **SUMMARY_OF_CHANGES.md** - Resumen de cambios (actualizado sesión 2.1)
+7. ✅ **RENDERING_ARCHITECTURE.md** - Documentación modular de rendering
+8. ✅ **README.md actualizado** - Bibliografía corregida
 
-### Impacto
-- **Código**: -873 líneas redundantes, parámetros realistas
-- **Documentación**: +982 líneas nuevas
-- **Calidad científica**: Referencias correctas, parámetros validados
+### Impacto Total
+- **Código**: -1173 líneas redundantes (873 + ~300), arquitectura mejorada
+- **Documentación**: +1300 líneas nuevas y bien organizadas
+- **Calidad**: Referencias correctas, parámetros validados, arquitectura clara
+
+---
 
 ---
 

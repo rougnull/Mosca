@@ -54,29 +54,51 @@ def format_joint_data(raw_data: Dict, subsample: int = 1) -> Dict[str, np.ndarra
     }
     
     # Detectar si los datos están en grados o radianes
-    # Si encontramos valores > 7.0 (2*pi es ~6.28), asumimos grados
+    # CRÍTICO: SOLO revisar datos de joints, NO otros campos como posiciones/concentraciones
+    # Los joints deben estar en rango [-π, π] (radianes)
     max_val_detected = 0.0
     
     for joint, values in raw_data.items():
-        if joint in ["meta", "swing_stance_time"] or not isinstance(values, (list, np.ndarray)):
+        # Solo procesar campos que son joints
+        if not (joint.startswith("walkerJoin") or joint.startswith("joint_")):
             continue
+        if not isinstance(values, (list, np.ndarray)):
+            continue
+            
         current_max = np.max(np.abs(values))
         if current_max > max_val_detected:
             max_val_detected = current_max
             
-    # Umbral de seguridad: 2 * PI + margen
+    # Umbral de seguridad: 2 * PI + margen (radianes)
+    # Si max > 2π ≈ 6.28, probablemente son grados
     is_degrees = max_val_detected > 6.5
     if is_degrees:
-        print(f"  [Data] Detectados valores > 2π (Max: {max_val_detected:.2f}). Convirtiendo GRADOS -> RADIANES.")
+        print(f"  [Data] Detectados valores > 2*PI (Max: {max_val_detected:.2f}). Convirtiendo GRADOS -> RADIANES.")
 
     for joint, values in raw_data.items():
-        # Ignorar metadatos
-        if joint in ["meta", "swing_stance_time"]:
+        # Ignorar metadatos y campos que no son joints
+        if not isinstance(values, (list, np.ndarray)):
             continue
         
-        # Parsear nombre de joint
-        # Formato esperado: "walkerJoin_XX_LEG_SEGMENT_DOF"
+        # Solo procesar campos que son joints
+        # Pueden ser en formato "walkerJoin_XX..." o ya procesados como "joint_XX..."
+        if not (joint.startswith("walkerJoin") or joint.startswith("joint_")):
+            continue
+        
+        # Si ya está en formato "joint_XX", usarlo directamente
+        if joint.startswith("joint_"):
+            vals = np.array(values)[::subsample]
+            if is_degrees:
+                vals = np.deg2rad(vals)
+            formatted[joint] = vals
+            continue
+        
+        # Parsear nombre de joint en formato "walkerJoin_XX_LEG_SEGMENT_DOF"
         try:
+            # Validar que tiene al menos 9 caracteres para acceder a joint[6:8] y joint[9:]
+            if len(joint) < 9:
+                continue
+                
             leg = joint[6:8]  # Posiciones 6-7 son el leg code
             joint_name = joint[9:]  # Después del guión bajo
             
