@@ -494,26 +494,80 @@ Ver sección [Extensiones](#extensiones) para validaciones pendientes.
 ## Estructura de Carpetas
 
 ```
-NeuroMechFly Sim/
-├── src/
+Mosca/
+├── src/                                # Código fuente principal
 │   ├── olfaction/
-│   │   ├── __init__.py
-│   │   └── odor_field.py              # Modelo de campo 3D
+│   │   └── odor_field.py              # Modelo de campo 3D gaussiano
 │   ├── controllers/
-│   │   ├── __init__.py
-│   │   ├── olfactory_brain.py         # 3 modos de decisión
-│   │   └── brain_fly.py               # Integración FlyGym
-│   └── simulation/
-│       ├── __init__.py
-│       └── olfactory_sim.py           # Orquestador
-├── notebooks/
-│   └── olfactory_navigation.ipynb     # Tutorial interactivo
-├── example_minimal.py                  # Demo standalone
-├── run_olfactory_example.py            # Script de experimentos
-├── outputs/
-│   └── olfactory/                     # Resultados (CSV, PNG)
+│   │   ├── olfactory_brain.py         # Controller básico (3 modos)
+│   │   ├── improved_olfactory_brain.py # ⭐ Controller mejorado (bilateral + temporal gradient)
+│   │   └── brain_fly.py               # Integración con FlyGym
+│   ├── simulation/
+│   │   └── olfactory_sim.py           # Orquestador de simulaciones
+│   ├── core/
+│   │   ├── config.py                  # Configuración de rendering
+│   │   └── data.py                    # Formateo de datos
+│   └── render/
+│       └── mujoco_renderer.py         # Rendering 3D con MuJoCo
+│
+├── tools/                              # Scripts de simulación y análisis
+│   ├── run_simulation.py              # ⭐ Script principal para simulaciones
+│   ├── batch_experiments.py           # Batch de experimentos
+│   ├── analyze_experiments.py         # Generador de reportes HTML
+│   ├── render_simulation_video.py     # Rendering de videos
+│   ├── validate_movement_control.py   # Suite de tests
+│   └── diagnose_critical.py           # Diagnóstico de parámetros
+│
+├── data/                               # Datos y documentación del proyecto
+│   ├── docs/                          # 📚 Documentación técnica
+│   │   ├── EXECUTIVE_SUMMARY.md       # Resumen ejecutivo del proyecto
+│   │   ├── COMPLETE_CODE_REVIEW.md    # Análisis técnico completo
+│   │   ├── WORKFLOW_GUIDE.md          # Guía de uso de scripts
+│   │   └── SUMMARY_OF_CHANGES.md      # Historial de cambios
+│   ├── notebooks/                     # Jupyter notebooks interactivos
+│   │   ├── 1_getting_started.ipynb    # Introducción
+│   │   ├── 2_kinematic_replay.ipynb   # Replay cinemático
+│   │   └── 3_fly_following.ipynb      # Seguimiento de mosca
+│   └── inverse_kinematics/            # Datos de cinemática inversa
+│
+├── outputs/                            # Resultados de simulaciones
+│   └── YYYY-MM-DD_HH-MM-SS/           # Simulaciones timestamped
+│       ├── trajectory.csv              # Trayectoria completa
+│       ├── config.json                 # Parámetros usados
+│       └── simulation.mp4              # Video renderizado
+│
+├── debug/                              # Archivos de debug y análisis
+│   ├── TECHNICAL_ANALYSIS.md          # Análisis técnico de problemas
+│   └── SUMMARY_OF_WORK.md             # Resumen de trabajo realizado
+│
 └── README.md                           # Este archivo
 ```
+
+### Documentación del Proyecto
+
+El proyecto cuenta con documentación exhaustiva en `data/docs/`:
+
+- **WORKFLOW_GUIDE.md**: Guía práctica - qué script usar para cada tarea
+- **EXECUTIVE_SUMMARY.md**: Resumen de alto nivel del proyecto y hallazgos
+- **COMPLETE_CODE_REVIEW.md**: Análisis técnico detallado (762 líneas)
+- **SUMMARY_OF_CHANGES.md**: Historial de cambios y mejoras implementadas
+
+### Parámetros Biológicos Validados (2026-03-12)
+
+Los parámetros del `ImprovedOlfactoryBrain` han sido ajustados para coincidir con datos biológicos:
+
+| Parámetro | Valor | Justificación Biológica |
+|-----------|-------|-------------------------|
+| `bilateral_distance` | 1.2 mm | Distancia real entre antenas de *Drosophila* |
+| `forward_scale` | 1.0 | Mapea a velocidad típica de 10 mm/s |
+| `turn_scale` | 0.8 | Giro realista basado en observaciones |
+| `threshold` | 0.01 | Umbral de detección validado |
+| `temporal_gradient_gain` | 10.0 | Amplificación de cambio temporal (dC/dt) |
+
+**Nota**: El controller mejorado implementa:
+- ✅ **Bilateral sensing**: Comparación izquierda-derecha (como antenas reales)
+- ✅ **Temporal gradient**: Forward basado en dC/dt (previene overshooting)
+- ✅ **Parámetros biológicamente realistas**: Validados contra literatura
 
 ---
 
