@@ -19,6 +19,7 @@ try:
     from flygym import Fly, Camera
     from flygym.simulation import SingleFlySimulation
     from flygym.arena import FlatTerrain
+    from flygym.preprogrammed import all_leg_dofs  # Use FlyGym's predefined DoF list
     HAS_FLYGYM = True
 except ImportError:
     print("ERROR: FlyGym not available")
@@ -51,19 +52,6 @@ def run_short_simulation():
         temporal_gradient_gain=10.0
     )
 
-    # FlyGym leg DoF configuration
-    all_leg_dofs = []
-    for leg in ["LF", "LM", "LH", "RF", "RM", "RH"]:
-        all_leg_dofs.extend([
-            f"{leg}Coxa",
-            f"{leg}Coxa_roll",
-            f"{leg}Coxa_yaw",
-            f"{leg}Femur",
-            f"{leg}Femur_roll",
-            f"{leg}Tibia",
-            f"{leg}Tarsus1",
-        ])
-
     start_pos = (35.0, 35.0, 0.5)
 
     print(f"\nConfiguration:")
@@ -71,13 +59,14 @@ def run_short_simulation():
     print(f"  Start pos: {start_pos}")
     print(f"  Brain: ImprovedOlfactoryBrain")
     print(f"  Simulation steps: 50 (0.005s)")
+    print(f"  Actuated joints: {len(all_leg_dofs)} DoF")
 
     # Create BrainFly
     fly = BrainFly(
         brain=brain,
         odor_field=odor_field,
         init_pose="tripod",
-        actuated_joints=all_leg_dofs,
+        actuated_joints=all_leg_dofs,  # Use FlyGym's predefined DoF list
         control="position",
         spawn_pos=start_pos,
         motor_mode="direct_joints",
