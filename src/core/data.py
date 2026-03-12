@@ -53,6 +53,22 @@ def format_joint_data(raw_data: Dict, subsample: int = 1) -> Dict[str, np.ndarra
         "TiTa": "Tarsus1"
     }
     
+    # Detectar si los datos están en grados o radianes
+    # Si encontramos valores > 7.0 (2*pi es ~6.28), asumimos grados
+    max_val_detected = 0.0
+    
+    for joint, values in raw_data.items():
+        if joint in ["meta", "swing_stance_time"] or not isinstance(values, (list, np.ndarray)):
+            continue
+        current_max = np.max(np.abs(values))
+        if current_max > max_val_detected:
+            max_val_detected = current_max
+            
+    # Umbral de seguridad: 2 * PI + margen
+    is_degrees = max_val_detected > 6.5
+    if is_degrees:
+        print(f"  [Data] Detectados valores > 2π (Max: {max_val_detected:.2f}). Convirtiendo GRADOS -> RADIANES.")
+
     for joint, values in raw_data.items():
         # Ignorar metadatos
         if joint in ["meta", "swing_stance_time"]:
@@ -60,40 +76,35 @@ def format_joint_data(raw_data: Dict, subsample: int = 1) -> Dict[str, np.ndarra
         
         # Parsear nombre de joint
         # Formato esperado: "walkerJoin_XX_LEG_SEGMENT_DOF"
-        # Ejemplo: "walkerJoin_00_RF_ThC_pitch"
         try:
-            # El formato real es: walkerJoin_NN_LEG_SEGMENT_DOF
-            # donde NN es un número, LEG es RF/LF/etc, SEGMENT es ThC/CTr/etc
-            
-            # Extraer componentes
             leg = joint[6:8]  # Posiciones 6-7 son el leg code
             joint_name = joint[9:]  # Después del guión bajo
             
-            # Dividir en segmento y DOF
             if "_" in joint_name:
                 parts = joint_name.split("_")
-                segment = parts[0]  # ThC, CTr, FTi, TiTa
+                segment = parts[0]
                 dof = parts[1] if len(parts) > 1 else "pitch"
             else:
                 segment = joint_name
                 dof = "pitch"
             
-            # Mapear segmento
             segment_name = segment_mapping.get(segment, segment)
             
-            # Crear nombre de joint en formato MuJoCo
             if dof == "pitch":
                 new_key = f"joint_{leg}{segment_name}"
             else:
                 new_key = f"joint_{leg}{segment_name}_{dof}"
             
-            # Samplear si es necesario
             if isinstance(values, (list, np.ndarray)):
-                values_sampled = np.array(values)[::subsample]
-                formatted[new_key] = values_sampled
+                vals = np.array(values)[::subsample]
+                
+                # CONVERSIÓN CRÍTICA PARA EVITAR EXPLOSIONES
+                if is_degrees:
+                    vals = np.deg2rad(vals)
+                    
+                formatted[new_key] = vals
             
         except (IndexError, ValueError, KeyError) as e:
-            # Skip joints que no puedan parsearse
             continue
     
     if not formatted:
