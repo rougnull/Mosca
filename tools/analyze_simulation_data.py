@@ -338,7 +338,10 @@ def analyze_pkl_file(pkl_path):
         for key in list(data.keys())[:5]:
             value = data[key]
             print(f"\n{key}:", flush=True)
-            print(f"  Tipo: {type(value)}", flush=True)
+            # Get type without angle brackets for PowerShell compatibility
+            value_type = type(value)
+            type_display = f"{value_type.__module__}.{value_type.__name__}" if hasattr(value_type, '__module__') else value_type.__name__
+            print(f"  Tipo: {type_display}", flush=True)
             if hasattr(value, 'shape'):
                 print(f"  Shape: {value.shape}", flush=True)
                 if len(value.shape) > 0 and value.shape[0] > 0:
@@ -347,7 +350,9 @@ def analyze_pkl_file(pkl_path):
             elif isinstance(value, (list, tuple)):
                 print(f"  Longitud: {len(value)}", flush=True)
                 if len(value) > 0:
-                    print(f"  Tipo primer elemento: {type(value[0])}", flush=True)
+                    elem_type = type(value[0])
+                    elem_type_display = f"{elem_type.__module__}.{elem_type.__name__}" if hasattr(elem_type, '__module__') else elem_type.__name__
+                    print(f"  Tipo primer elemento: {elem_type_display}", flush=True)
                     if hasattr(value[0], 'shape'):
                         print(f"  Shape primer elemento: {value[0].shape}", flush=True)
 
@@ -445,7 +450,9 @@ def analyze_pkl_file(pkl_path):
     elif isinstance(data, list):
         print(f"\nLista de {len(data)} elementos", flush=True)
         if len(data) > 0:
-            print(f"Tipo primer elemento: {type(data[0])}", flush=True)
+            elem_type = type(data[0])
+            elem_type_display = f"{elem_type.__module__}.{elem_type.__name__}" if hasattr(elem_type, '__module__') else elem_type.__name__
+            print(f"Tipo primer elemento: {elem_type_display}", flush=True)
             if isinstance(data[0], dict):
                 print(f"Claves primer elemento: {list(data[0].keys())[:10]}", flush=True)
 
