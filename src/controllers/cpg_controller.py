@@ -124,8 +124,9 @@ class SimplifiedTripodCPG:
             phase = self.phases[leg_idx]
 
             # Compute amplitude modulation (stronger with higher forward command)
-            # Use higher baseline (0.5) for better stability
-            amplitude = 0.5 + 0.5 * abs(forward)
+            # CRITICAL FIX: Increased baseline from 0.5 to 0.7 to prevent sinking
+            # When forward ≈ 0, we still need sufficient leg movement for support
+            amplitude = 0.7 + 0.3 * abs(forward)
 
             # Determine if leg is in stance or swing phase
             # Stance: phase ∈ [0, π] - leg on ground, pushing
@@ -157,11 +158,12 @@ class SimplifiedTripodCPG:
 
                 elif dof_name == "Femur":
                     # Femur: main lifting joint
-                    # Offset + oscillation
-                    offset = -0.8  # Natural bent position
+                    # CRITICAL FIX: Changed offset from -0.8 to -0.5 for better vertical support
+                    # More extended femur prevents sinking over time
+                    offset = -0.5  # Less bent, better support
                     if in_stance:
-                        # Stance: extended
-                        angle = offset + amp * 0.3
+                        # Stance: extended for support
+                        angle = offset + amp * 0.4  # Increased extension in stance
                     else:
                         # Swing: flexed (lift leg)
                         angle = offset - amp * 0.5 * np.sin(phase - np.pi)

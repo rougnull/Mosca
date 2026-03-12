@@ -138,7 +138,7 @@ class PhysicsBasedOlfactorySimulation:
             bilateral_distance=1.2,
             forward_scale=1.0,
             turn_scale=0.8,
-            temporal_gradient_gain=10.0
+            temporal_gradient_gain=50.0  # Increased from 10.0 to be more sensitive to small concentration changes
         )
 
         # Create BrainFly (inherits from Fly, integrates brain + odor sensing)
