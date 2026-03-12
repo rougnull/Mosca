@@ -1,6 +1,7 @@
 # Documentación Técnica del Proyecto
 
 Esta carpeta contiene la documentación técnica completa del proyecto Mosca - Navegación Olfatoria en Drosophila.
+En el gitignore no se debe poner las carpetas de output ni debug, se quiere compartir y subir a github todos los resultados y experimentos realizados.
 
 ## Archivos de Documentación
 
