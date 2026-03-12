@@ -391,9 +391,19 @@ def analyze_pkl_file(pkl_path):
                             print(f"    Inicial: {value[0]}", flush=True)
                             print(f"    Final: {value[-1]}", flush=True)
                             # Si es ángulo, convertir a grados
-                            if value.shape[-1] == 1 or (len(value.shape) == 1):
-                                initial_deg = safe_degrees(value[0] if isinstance(value[0], (int, float)) else value[0, 0])
-                                final_deg = safe_degrees(value[-1] if isinstance(value[-1], (int, float)) else value[-1, 0])
+                            if len(value.shape) == 1:
+                                # Array 1D: value[0] is already a scalar
+                                initial_deg = safe_degrees(value[0])
+                                final_deg = safe_degrees(value[-1])
+                                print(f"    Inicial (grados): {initial_deg:.1f}°", flush=True)
+                                print(f"    Final (grados): {final_deg:.1f}°", flush=True)
+                                rotation = abs(final_deg - initial_deg)
+                                if rotation > 170 and rotation < 190:
+                                    print(f"    ⚠️  PROBLEMA: Rotación ~180° detectada ({rotation:.1f}°)", flush=True)
+                            elif value.shape[-1] == 1:
+                                # Array 2D with single column: need to extract scalar
+                                initial_deg = safe_degrees(value[0, 0])
+                                final_deg = safe_degrees(value[-1, 0])
                                 print(f"    Inicial (grados): {initial_deg:.1f}°", flush=True)
                                 print(f"    Final (grados): {final_deg:.1f}°", flush=True)
                                 rotation = abs(final_deg - initial_deg)
