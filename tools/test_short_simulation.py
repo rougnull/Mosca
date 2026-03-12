@@ -53,18 +53,21 @@ def run_short_simulation():
     )
 
     start_pos = (35.0, 35.0, 0.5)
+    timestep = 1e-4  # Physics timestep
 
     print(f"\nConfiguration:")
     print(f"  Odor source: (50, 50, 5)")
     print(f"  Start pos: {start_pos}")
     print(f"  Brain: ImprovedOlfactoryBrain")
-    print(f"  Simulation steps: 50 (0.005s)")
+    print(f"  Simulation steps: 50 ({50 * timestep:.5f}s)")
+    print(f"  Simulation timestep: {timestep}s")
     print(f"  Actuated joints: {len(all_leg_dofs)} DoF")
 
     # Create BrainFly
     fly = BrainFly(
         brain=brain,
         odor_field=odor_field,
+        timestep=timestep,  # CRITICAL: Pass simulation timestep to CPG controller
         init_pose="tripod",
         actuated_joints=all_leg_dofs,  # Use FlyGym's predefined DoF list
         control="position",
@@ -77,7 +80,7 @@ def run_short_simulation():
     sim = SingleFlySimulation(
         fly=fly,
         arena=FlatTerrain(),
-        timestep=1e-4,
+        timestep=timestep,
     )
 
     obs, info = sim.reset()

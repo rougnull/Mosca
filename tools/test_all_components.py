@@ -331,6 +331,7 @@ def test_short_simulation():
     )
 
     start_pos = (35.0, 35.0, 0.5)
+    timestep = 1e-4  # Physics timestep
 
     # Extended simulation: 200 steps instead of 50 for more noticeable movement
     num_steps = 200
@@ -339,13 +340,15 @@ def test_short_simulation():
     print(f"  Odor source: (50, 50, 5)")
     print(f"  Start pos: {start_pos}")
     print(f"  Brain: ImprovedOlfactoryBrain")
-    print(f"  Simulation steps: {num_steps} ({num_steps * 1e-4:.4f}s)")
+    print(f"  Simulation steps: {num_steps} ({num_steps * timestep:.4f}s)")
+    print(f"  Simulation timestep: {timestep}s")
     print(f"  Actuated joints: {len(all_leg_dofs)} DoF")
 
     # Create BrainFly
     fly = BrainFly(
         brain=brain,
         odor_field=odor_field,
+        timestep=timestep,  # CRITICAL: Pass simulation timestep to CPG controller
         init_pose="tripod",
         actuated_joints=all_leg_dofs,
         control="position",
@@ -358,7 +361,7 @@ def test_short_simulation():
     sim = SingleFlySimulation(
         fly=fly,
         arena=FlatTerrain(),
-        timestep=1e-4,
+        timestep=timestep,
     )
 
     obs, info = sim.reset()
@@ -454,6 +457,60 @@ def test_short_simulation():
         has_issues = True
     else:
         print(f"✅ Fly traveled {distance_traveled:.6f} mm")
+
+    # Save test data to outputs/tests
+    try:
+        import pickle
+        from datetime import datetime
+        from pathlib import Path
+
+        # Create timestamp for unique filename
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+        output_dir = Path(__file__).parent.parent / "outputs" / "tests"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Prepare data package
+        test_data = {
+            'timestamp': timestamp,
+            'configuration': {
+                'odor_source': (50, 50, 5),
+                'start_pos': start_pos,
+                'timestep': timestep,
+                'num_steps': num_steps,
+                'simulation_time': num_steps * timestep,
+            },
+            'brain_actions': brain_actions_array,
+            'positions': positions_array,
+            'headings': headings_array,
+            'statistics': {
+                'forward_min': np.min(forward_actions),
+                'forward_max': np.max(forward_actions),
+                'forward_mean': np.mean(forward_actions),
+                'turn_min': np.min(turn_actions),
+                'turn_max': np.max(turn_actions),
+                'turn_mean': np.mean(turn_actions),
+                'turn_std': np.std(turn_actions),
+                'distance_traveled': distance_traveled,
+                'heading_change': headings_array[-1] - headings_array[0],
+                'z_min': np.min(positions_array[:, 2]),
+                'z_max': np.max(positions_array[:, 2]),
+            },
+            'issues': {
+                'ground_penetration': np.min(positions_array[:, 2]) < 0,
+                'turn_signal_zero': np.max(np.abs(turn_actions)) < 1e-6,
+                'minimal_movement': distance_traveled < 0.01,
+            }
+        }
+
+        # Save to pickle file
+        output_file = output_dir / f"physics_test_{timestamp}.pkl"
+        with open(output_file, 'wb') as f:
+            pickle.dump(test_data, f)
+
+        print(f"\n💾 Test data saved to: {output_file}")
+
+    except Exception as e:
+        print(f"\n⚠️  Warning: Could not save test data: {e}")
 
     return not has_issues
 

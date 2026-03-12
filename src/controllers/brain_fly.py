@@ -50,17 +50,19 @@ class BrainFly(Fly):
         odor_field,
         sensor_position: str = "head",
         motor_mode: str = "hybrid_turning",
+        timestep: float = 1e-4,  # Simulation timestep for CPG controller
         *args,
         **kwargs
     ):
         """Inicializar BrainFly."""
         super().__init__(*args, **kwargs)
-        
+
         self.brain = brain
         self.odor_field = odor_field
         self.sensor_position = sensor_position
         self.motor_mode = motor_mode
-        
+        self.timestep = timestep  # Store for CPG controller initialization
+
         # Buffer de observaciones para acceso rápido
         self._last_obs = None
         self._odor_concentration = 0.0
@@ -375,11 +377,12 @@ class BrainFly(Fly):
             try:
                 from controllers.cpg_controller import AdaptiveCPGController
                 # Use adaptive controller for smooth transitions
+                # CRITICAL: Use the simulation timestep, not a hardcoded value
                 self._cpg_controller = AdaptiveCPGController(
-                    timestep=0.01,  # Assumes 100Hz simulation
+                    timestep=self.timestep,  # Use actual simulation timestep
                     base_frequency=2.0  # 2 Hz stepping frequency
                 )
-                print("[BrainFly] Initialized CPG controller")
+                print(f"[BrainFly] Initialized CPG controller with timestep={self.timestep}")
             except ImportError:
                 print("[BrainFly] Warning: CPG controller not available, using simplified model")
                 self._cpg_controller = None

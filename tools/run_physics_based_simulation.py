@@ -145,6 +145,7 @@ class PhysicsBasedOlfactorySimulation:
         self.fly = BrainFly(
             brain=self.brain,
             odor_field=self.odor_field,
+            timestep=timestep,  # CRITICAL: Pass simulation timestep to CPG controller
             init_pose="tripod",  # Use tripod (standing) pose instead of stretch
             actuated_joints=all_leg_dofs,  # All 42 DoF
             control="position",  # Position control (absolute angles)
