@@ -12,7 +12,18 @@ Otro posible fallo obiamente es (si el cerebro funciona como es esperado) es la 
 
 A parte de los errores hay que modular el codigo y actualizar el "codigo principal" que son los archivos render_enhanced_3d_v2.py que son los archivos que deberian implementar todas las funcionalidades para "hacer la simulacion y render final". Cuando ya tengamos claro que todo está correcto.
 
-
+En la linea 186 se guarda la informacion de la trayectoria como simples arrays? esto seguro que genera algun tipo de problema. Ademas, es correcto el uso de pickle para guardar los datos de la trayectoria? porque es esto util? 
+# Storage for trajectory data
+        self.trajectory_data = {
+            "times": [],
+            "positions": [],
+            "headings": [],
+            "orientations": [],
+            "odor_concentrations": [],
+            "brain_actions": [],
+            "joint_angles": [],
+            "contact_forces": [],
+        }
 
 Basado en la arquitectura y la documentación de tu proyecto "Mosca", tu diagnóstico es muy acertado. Aquí tienes un análisis de por qué está pasando cada cosa y cómo solucionarlo apoyándome en la estructura de tu código:
 
