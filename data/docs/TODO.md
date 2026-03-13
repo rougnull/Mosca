@@ -14,6 +14,33 @@ A parte de los errores hay que modular el codigo y actualizar el "codigo princip
 
 
 
+Basado en la arquitectura y la documentación de tu proyecto "Mosca", tu diagnóstico es muy acertado. Aquí tienes un análisis de por qué está pasando cada cosa y cómo solucionarlo apoyándome en la estructura de tu código:
+
+**1. El error de la simulación (la mosca se "hunde" en el suelo)**
+Este es un problema mecánico detectado en la configuración de las patas dentro del simulador de físicas. Según los registros de actualización de tu proyecto, la mosca no logra mantener la altura (z varía) porque la postura base de las patas no ejerce suficiente fuerza contra el suelo. Para solucionarlo, debes aplicar los siguientes ajustes críticos en el controlador:
+*   **Extensión del fémur (Femur Extension):** Ajustar el *offset* del fémur de -0.8 a -0.5 radianes para darle una postura más erguida [1].
+*   **Soporte del CPG:** Aumentar la amplitud base de las patas en el controlador CPG de 0.5 a 0.7 [1]. 
+Con estos cambios, la mosca debería mantener una altura estable en el eje Z (> 1.5mm) y no hundirse [2].
+
+**2. El analizador solo detecta 1 joint en lugar de 42 (y extracción del `.pkl`)**
+Una mosca en FlyGym tiene 6 patas con 7 grados de libertad (DoF) cada una, lo que suma **42 articulaciones** [2, 3]. Si el analizador solo detecta un joint (o un array de dimensiones incorrectas), el error está casi garantizado en la **extracción de datos en bruto del archivo `simulation_data.pkl`** [2, 4]. 
+*   **Por qué pasa:** Tu sistema tiene diferentes niveles de abstracción. El `OlfactoryBrain` genera un comando de solo 2 dimensiones: `[forward, turn]` [5, 6]. Es muy probable que tu script de guardado esté registrando la salida del *cerebro* (la intención de movimiento) en lugar de la salida del *CPG Controller* (las acciones de las 42 articulaciones que realmente van a MuJoCo) [5]. Debes revisar que tu código de análisis extraiga el diccionario de acciones (`action dict`) del nivel físico y no solo la variable cognitiva [5].
+
+**3. Visualización del cerebro ("acercarse" al olor)**
+Tu idea de ejecutar una prueba aislada del cerebro es excelente y necesaria. Tu módulo `ImprovedOlfactoryBrain` fue actualizado recientemente para arreglar un problema donde la mosca se alejaba al estar muy cerca de la fuente [7]. 
+*   Para la gráfica, debes visualizar el **gradiente temporal** ($dC/dt$) frente a la acción `forward` [2, 7]. El cerebro ahora está programado para que el motor "forward" se active *únicamente cuando la concentración aumenta* (previniendo que la mosca siga de largo o haga *overshooting*) [7, 8]. 
+*   Para el giro (`turn`), debes graficar la diferencia de concentración entre la antena izquierda y la derecha (separadas biológicamente por 1.2 mm), ya que el cerebro usa esta comparación bilateral para la quimiotaxis [2, 6, 8].
+
+**4. "Compatibilidad" o comunicación entre el cerebro y el simulador de físicas**
+Este es el núcleo de tu arquitectura. Has diagnosticado correctamente que el cerebro (`OlfactoryBrain`) solo interpreta un concepto abstracto (`[forward, turn] ∈ [-1, 1]`) y que FlyGym no sabe qué significa esto [5]. 
+*   La pieza que resuelve esta "incompatibilidad" es el **CPG Controller** (Central Pattern Generator) [3, 5]. 
+*   El módulo `SimplifiedTripodCPG` o `AdaptiveCPGController` es el traductor: toma el comando abstracto `[f, t]` y genera de forma procedimental las trayectorias para los 42 ángulos de las articulaciones usando un patrón de marcha en trípode (alternando grupos de patas a frecuencias de 8-12 Hz) [3, 9]. Si la mosca se mueve erráticamente, debes revisar que el módulo `BrainFly` esté usando el método de mapeo *Híbrido* (que pasa por el CPG) y no un mapeo directo ("Direct mapping") que omita las fases del ciclo de marcha [6].
+
+**5. Modularidad y actualización de `render_enhanced_3d_v2.py`**
+Tu arquitectura está diseñada para ser completamente modular con cuatro niveles: Sensorial (`OdorField`), Cognitivo (`ImprovedOlfactoryBrain`), Motor (`BrainFly`/`CPG`) y Físico (`Simulation`) [5, 7].
+Cuando actualices `render_enhanced_3d_v2.py`, este archivo debe actuar únicamente como el "orquestador". No debería contener lógica de física ni de toma de decisiones; simplemente debe instanciar el campo de olor, conectar el cerebro a la mosca (`BrainFly`), inicializar la simulación con el timestep correcto (0.1 ms) y manejar la renderización opcional [5, 8, 10]. Esto te permitirá mantener el modo "solo físicas" (que es mucho más rápido para pruebas) separado de la visualización [10]. Además, asegúrate de aplicar el arreglo crítico reciente de aumentar el `temporal_gradient_gain` del cerebro de 10.0 a 50.0 para mejorar la sensibilidad y la acción de avance [1, 6].
+
+
 
 Aquí tienes el plan de diseño y arquitectura detallado, redactado con un alto nivel técnico tanto en el aspecto neurobiológico como en el computacional (ingeniería de software). 
 
