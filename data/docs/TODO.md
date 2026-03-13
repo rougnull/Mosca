@@ -10,6 +10,8 @@ Puede ser util analizar tambien mirar el codigo del analizador de simulacion y v
 
 Otro posible fallo obiamente es (si el cerebro funciona como es esperado) es la "compatibilidad" o comunicacion entre el cerebro y el simulador de fisicas y sus extremidades, puede que el cerebro solo interprete un ir acercarse o alejarse, pero el simulador no sabe que es lo que realmete significa esto ni hacia donde acercase ni alejarse.
 
+Verificar que el cpg funciona de verdad, hacer una simulacion sin cerebro, solo que cpg reciba señales de avanzar y que este mueva las extremidades de la mosca correctamente. otra cosa rara es que si el cerebro solo devuelve informacion del tipo avanzar hacia alante o hacia atras; cpg realmente no sabe que interpretar el cuando girar o cuando dejar de andar; seguramente haya que mejorar los outputs del cerebro, la compatibilidad con cpg y los diferentes movimientos que este puede hacer, como pararse (stalling si ya esta en el origen del olor o muy cerca) o que sepa como ir girando hacia el centro del olor.
+
 A parte de los errores hay que modular el codigo y actualizar el "codigo principal" que son los archivos render_enhanced_3d_v2.py que son los archivos que deberian implementar todas las funcionalidades para "hacer la simulacion y render final". Cuando ya tengamos claro que todo está correcto.
 
 En la linea 186 se guarda la informacion de la trayectoria como simples arrays? esto seguro que genera algun tipo de problema. Ademas, es correcto el uso de pickle para guardar los datos de la trayectoria? porque es esto util? 
