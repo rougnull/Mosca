@@ -1,0 +1,44 @@
+{
+  "distance_metrics": {
+    "initial_distance_mm": 20.615528128088304,
+    "final_distance_mm": 14.269234773313881,
+    "min_distance_mm": 10.357441756517277,
+    "min_distance_step": 1023,
+    "total_distance_change_mm": -6.3462933547744225,
+    "convergence_rate_mm_s": -0.031733053424956706,
+    "efficiency_ratio": 0.06021954546142396
+  },
+  "oscillation_metrics": {
+    "num_oscillations": 431,
+    "num_peaks": 216,
+    "num_troughs": 215
+  },
+  "motor_metrics": {
+    "forward_cmd_mean": 0.07872581250885013,
+    "forward_cmd_std": 0.07030584706448118,
+    "forward_active_ratio": 0.04175,
+    "turn_cmd_mean": -0.9298272283218252,
+    "turn_cmd_std": 0.26868378338579246,
+    "turn_cmd_max": 1.0
+  },
+  "sensory_metrics": {
+    "concentration_mean": 36.55023598620488,
+    "concentration_std": 7.653078026608476,
+    "concentration_range": 44.84460978390825,
+    "gradient_mean": 0.10514382454818037,
+    "gradient_std": 0.06607569472708112,
+    "conc_gradient_correlation": -0.12872242023813818
+  },
+  "velocity_metrics": {
+    "linear_velocity_mean_mm_s": 0.0,
+    "linear_velocity_max_mm_s": 0.0,
+    "angular_velocity_mean_rad_s": 0.0,
+    "angular_velocity_max_rad_s": 0.0
+  },
+  "phase_analysis": {
+    "approach_phase_distance_change_mm": -10.258086371571027,
+    "approach_phase_time_s": 10.23,
+    "retreat_phase_distance_change_mm": 3.9117930167966044,
+    "retreat_phase_time_s": 189.76000000000002
+  }
+}

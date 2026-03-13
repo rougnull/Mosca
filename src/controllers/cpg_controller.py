@@ -124,9 +124,10 @@ class SimplifiedTripodCPG:
             phase = self.phases[leg_idx]
 
             # Compute amplitude modulation (stronger with higher forward command)
-            # CRITICAL FIX: Increased baseline from 0.5 to 0.7 to prevent sinking
-            # When forward ≈ 0, we still need sufficient leg movement for support
-            amplitude = 0.7 + 0.3 * abs(forward)
+            # CRITICAL FIX v2: Increased baseline from 0.7 to 0.9 for better ground support
+            # PHASE 2 TUNING: Larger amplitude ensures legs lift higher during swing phase
+            # This provides more stable vertical support during stance phase
+            amplitude = 0.9 + 0.1 * abs(forward)
 
             # Determine if leg is in stance or swing phase
             # Stance: phase ∈ [0, π] - leg on ground, pushing
@@ -158,9 +159,9 @@ class SimplifiedTripodCPG:
 
                 elif dof_name == "Femur":
                     # Femur: main lifting joint
-                    # CRITICAL FIX: Changed offset from -0.8 to -0.5 for better vertical support
-                    # More extended femur prevents sinking over time
-                    offset = -0.5  # Less bent, better support
+                    # CRITICAL FIX v2: Changed offset from -0.5 to -0.4 for even better vertical support
+                    # PHASE 2 TUNING: More extended femur = better ground clearance = higher Z-height stability
+                    offset = -0.4  # More extended for maximum support
                     if in_stance:
                         # Stance: extended for support
                         angle = offset + amp * 0.4  # Increased extension in stance
@@ -214,7 +215,7 @@ class AdaptiveCPGController(SimplifiedTripodCPG):
         # Smooth state tracking
         self.prev_forward = 0.0
         self.prev_turn = 0.0
-        self.current_amplitude = 0.5  # Match new baseline
+        self.current_amplitude = 0.9  # Match new baseline (updated from 0.5 to 0.9)
 
         # Smoothing parameters
         self.command_smoothing = 0.9  # 0.0 = no smoothing, 1.0 = max smoothing
@@ -247,8 +248,9 @@ class AdaptiveCPGController(SimplifiedTripodCPG):
         self.prev_turn = smoothed_turn
 
         # Ramp amplitude smoothly
-        # Use higher baseline (0.5) to match SimplifiedTripodCPG
-        target_amplitude = 0.5 + 0.5 * abs(smoothed_forward)
+        # Use higher baseline (0.9) to match SimplifiedTripodCPG v2
+        # PHASE 2 TUNING: Increased from 0.5 to 0.9 for better support
+        target_amplitude = 0.9 + 0.1 * abs(smoothed_forward)
         if self.current_amplitude < target_amplitude:
             self.current_amplitude = min(target_amplitude,
                                         self.current_amplitude + self.amplitude_ramp_rate)

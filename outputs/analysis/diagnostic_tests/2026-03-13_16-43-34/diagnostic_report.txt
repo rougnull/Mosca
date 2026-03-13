@@ -1,0 +1,30 @@
+======================================================================
+DIAGNOSTIC SIMULATION REPORT
+======================================================================
+
+SIMULATION PARAMETERS:
+  Duration: 2.0s
+  Timestep: 1e-4s (10kHz)
+  Total steps: 20000
+
+JOINT ANGLE RECORDING:
+  Shape: (20000, 42)
+  Min: -0.6710, Max: 1.4297
+  Non-zero: 840000 / 840000
+  Status: ✓ OK
+
+Z HEIGHT STABILITY:
+  Mean: -0.124mm
+  Min: -0.292mm, Max: 2.498mm
+  Range: 2.790mm
+  Std Dev: 0.360mm
+  Status: ✗ SINKING
+
+MOTOR COMMANDS:
+  Forward: [0.000, 1.000]
+  Turn: [-0.295, -0.000]
+
+FEMUR ANGLES:
+  Range: [-0.6710, -0.2000]
+  Valid: [-1.5, -0.2]
+  Status: ✓ OK

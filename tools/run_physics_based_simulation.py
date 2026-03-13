@@ -230,6 +230,15 @@ class PhysicsBasedOlfactorySimulation:
         """
         # Get action from BrainFly based on current observations
         action = self.fly.step(self.obs)
+        
+        # CRITICAL FIX: Extract joint angles BEFORE simulation step
+        # These are the commanded joint angles from the action
+        joint_angles_commanded = None
+        if isinstance(action, dict) and "joints" in action:
+            joint_angles_commanded = action["joints"].copy()
+        elif isinstance(action, np.ndarray):
+            if len(action) == 42:
+                joint_angles_commanded = action.copy()
 
         # Execute physics step
         self.obs, reward, terminated, truncated, self.info = self.sim.step(action)
@@ -258,6 +267,9 @@ class PhysicsBasedOlfactorySimulation:
             print(f"  Heading: {heading:.3f} rad ({np.degrees(heading):.1f}°)")
             print(f"  Odor conc: {conc:.4f}")
             print(f"  Brain action: forward={brain_action[0]:.4f}, turn={brain_action[1]:.4f}")
+            if joint_angles_commanded is not None:
+                femur_angles = joint_angles_commanded[3::7]  # Extract femur angles (every 7th, starting at 3)
+                print(f"  Femur angles (commanded): {femur_angles}")
             if hasattr(self.brain, '_concentration_history') and len(self.brain._concentration_history) > 1:
                 recent_conc = self.brain._concentration_history[-2:]
                 print(f"  Conc change: {recent_conc[-1] - recent_conc[-2]:.6f}")
@@ -271,10 +283,33 @@ class PhysicsBasedOlfactorySimulation:
         self.trajectory_data["odor_concentrations"].append(conc)
         self.trajectory_data["brain_actions"].append(brain_action)
 
-        if "joints" in self.obs:
-            self.trajectory_data["joint_angles"].append(self.obs["joints"][0].copy())  # Angles only
+        # CRITICAL FIX: Store commanded joint angles if available
+        # These are the angles being sent to the motors
+        if joint_angles_commanded is not None:
+            self.trajectory_data["joint_angles"].append(joint_angles_commanded)
         else:
-            self.trajectory_data["joint_angles"].append(np.zeros(42))
+            # Fallback: try to extract from observation
+            joint_angles_extracted = None
+            
+            # Try multiple possible keys in observation
+            possible_keys = ["joints", "joint_angles", "actuator_angles", "joint_state"]
+            for key in possible_keys:
+                if key in self.obs:
+                    try:
+                        angles = self.obs[key]
+                        if isinstance(angles, (list, np.ndarray)):
+                            angles_array = np.array(angles).flatten()
+                            if len(angles_array) == 42:
+                                joint_angles_extracted = angles_array
+                                break
+                    except:
+                        pass
+            
+            if joint_angles_extracted is not None:
+                self.trajectory_data["joint_angles"].append(joint_angles_extracted)
+            else:
+                # Last resort: use zeros (this shouldn't happen if CPG is properly integrated)
+                self.trajectory_data["joint_angles"].append(np.zeros(42))
 
         if "contact_forces" in self.obs:
             self.trajectory_data["contact_forces"].append(self.obs["contact_forces"].copy())

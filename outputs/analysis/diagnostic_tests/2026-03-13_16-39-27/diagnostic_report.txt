@@ -1,0 +1,13 @@
+======================================================================
+DIAGNOSTIC SIMULATION REPORT
+======================================================================
+
+SIMULATION PARAMETERS:
+  Duration: 2.0s
+  Timestep: 1e-4s (10kHz)
+  Total steps: 20000
+
+JOINT ANGLE RECORDING:
+  Shape: (20000, 42)
+  Min: -0.6710, Max: 1.4297
+  Non-zero: 840000 / 840000
